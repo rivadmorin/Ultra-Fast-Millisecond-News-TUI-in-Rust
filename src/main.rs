@@ -2,15 +2,15 @@ mod app;
 mod config;
 mod db;
 mod fetcher;
-mod scraper;
 mod sources;
 mod ui;
+mod scraper;
 
 use app::{App, AppEvent};
 use config::Config;
 use db::Db;
 use directories::ProjectDirs;
-use std::{env, error::Error, io, sync::Arc};
+use std::{error::Error, io, sync::Arc, env};
 
 use crossterm::{
     event::{self, Event as CEvent},
@@ -24,24 +24,18 @@ use tokio::time::Duration;
 async fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
 
-    // Check if we should run the scraper example
     if args.len() > 1 && args[1] == "--scrape" {
-        let url = if args.len() > 2 {
-            &args[2]
-        } else {
-            "https://techcrunch.com/2024/03/18/nvidia-blackwell-gpu-b200/"
-        };
+        let url = if args.len() > 2 { &args[2] } else { "https://techcrunch.com/2024/03/18/nvidia-blackwell-gpu-b200/" };
         println!("Scraping URL: {}", url);
         scraper::run_example_scraper(url)?;
         return Ok(());
     }
 
-    // Normal TUI logic
     let config = Config::load();
 
     let db_path = if let Some(proj_dirs) = ProjectDirs::from("com", "LiveNewsTUI", "LiveNews") {
         let db_dir = proj_dirs.data_local_dir();
-        std::fs::create_dir_all(db_dir)?;
+        let _ = std::fs::create_dir_all(db_dir);
         db_dir.join("news.db")
     } else {
         std::path::PathBuf::from("news.db")
@@ -82,10 +76,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     tokio::spawn(async move {
         loop {
-            if crossterm::event::poll(Duration::from_millis(100)).unwrap_or(false) {
+            #[allow(clippy::collapsible_if)]
+            if let Ok(true) = crossterm::event::poll(Duration::from_millis(100)) {
                 if let Ok(CEvent::Key(key)) = event::read() {
-                    if tx.send(AppEvent::Input(key)).is_err() {
-                        break;
+                    if tx.send(AppEvent::Input(key)).is_ok() {
+                        // Successfully sent
                     }
                 }
             }

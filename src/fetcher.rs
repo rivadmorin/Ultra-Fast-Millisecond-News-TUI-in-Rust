@@ -1,14 +1,14 @@
 use crate::config::Config;
 use crate::db::{Db, NewsItem};
-use crate::scraper::Scraper;
 use crate::sources::get_sources;
+use crate::scraper::Scraper;
 use chrono::{Datelike, TimeZone, Timelike, Utc};
 use log::{error, info};
-use std::io::Cursor;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 use tokio::sync::Semaphore;
 use tokio::time::{Duration, sleep};
+use std::io::Cursor;
 
 pub async fn start_fetcher(db: Arc<Db>, config: Config) {
     let sources = get_sources();
@@ -26,11 +26,7 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
             last_maintenance_day = now.day();
         }
 
-        let is_active = if config.active_hours_start <= config.active_hours_end {
-            hour >= config.active_hours_start && hour < config.active_hours_end
-        } else {
-            hour >= config.active_hours_start || hour < config.active_hours_end
-        };
+        let is_active = (config.active_hours_start..config.active_hours_end).contains(&hour);
 
         let interval_secs = if is_active {
             config.fetch_interval_active_seconds
@@ -38,8 +34,7 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
             config.fetch_interval_idle_seconds
         };
 
-        db.next_fetch_timestamp
-            .store(now.timestamp() + interval_secs as i64, Ordering::Relaxed);
+        db.next_fetch_timestamp.store(now.timestamp() + interval_secs as i64, Ordering::Relaxed);
 
         info!(
             "Starting stealthy fetch cycle for {} sources (Mode: {})",
@@ -56,65 +51,64 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
             let source_name = source.source_name.to_string();
             let category = source.category.to_string();
 
-            let task = tokio::task::spawn_blocking(move || {
-                let _permit = futures::executor::block_on(sem.acquire()).ok();
+            let task = tokio::spawn(async move {
+                let _permit = sem.acquire().await.ok();
 
                 info!("Stealthy fetching: {}", source_name);
 
-                match Scraper::fetch_raw(&url) {
-                    Ok(bytes) => {
-                        let cursor = Cursor::new(bytes);
-                        if let Ok(feed) = feed_rs::parser::parse(cursor) {
-                            let mut items = Vec::new();
-                            for entry in feed.entries {
-                                let title = entry
-                                    .title
-                                    .map(|t| t.content)
-                                    .unwrap_or_else(|| "No Title".to_string());
-                                let item_url = entry
-                                    .links
-                                    .first()
-                                    .map(|l| l.href.clone())
-                                    .unwrap_or_default();
+                let fetch_result = tokio::task::spawn_blocking(move || {
+                    Scraper::fetch_raw(&url)
+                }).await;
 
-                                let description =
-                                    entry.summary.map(|s| html2md::parse_html(&s.content));
+                if let Ok(Ok(bytes)) = fetch_result {
+                    let cursor = Cursor::new(bytes);
+                    if let Ok(feed) = feed_rs::parser::parse(cursor) {
+                        let mut items = Vec::new();
+                        for entry in feed.entries {
+                            let title = entry
+                                .title
+                                .map(|t| t.content)
+                                .unwrap_or_else(|| "No Title".to_string());
+                            let item_url = entry
+                                .links
+                                .first()
+                                .map(|l| l.href.clone())
+                                .unwrap_or_default();
 
-                                let timestamp = entry
-                                    .published
-                                    .map(|d| d.timestamp())
-                                    .unwrap_or_else(|| Utc::now().timestamp());
+                            let description = entry.summary.map(|s| html2md::parse_html(&s.content));
 
-                                if !item_url.is_empty() {
-                                    let datetime = Utc
-                                        .timestamp_opt(timestamp, 0)
-                                        .latest()
-                                        .unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap());
-                                    let formatted_time = datetime.format("%H:%M").to_string();
-                                    let formatted_source = format!("[{}]", source_name);
+                            let timestamp = entry
+                                .published
+                                .map(|d| d.timestamp())
+                                .unwrap_or_else(|| Utc::now().timestamp());
 
-                                    items.push(NewsItem {
-                                        title,
-                                        source: source_name.clone(),
-                                        category: category.clone(),
-                                        url: item_url,
-                                        description,
-                                        timestamp,
-                                        formatted_time,
-                                        formatted_source,
-                                    });
-                                }
-                            }
+                            if !item_url.is_empty() {
+                                let datetime = Utc
+                                    .timestamp_opt(timestamp, 0)
+                                    .latest()
+                                    .unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap());
+                                let formatted_time = datetime.format("%H:%M").to_string();
+                                let formatted_source = format!("[{}]", source_name);
 
-                            if !items.is_empty() {
-                                if let Err(e) = db.insert_items(&items) {
-                                    error!("Failed to insert items from {}: {}", source_name, e);
-                                }
+                                items.push(NewsItem {
+                                    title,
+                                    source: source_name.clone(),
+                                    category: category.clone(),
+                                    url: item_url,
+                                    description,
+                                    timestamp,
+                                    formatted_time,
+                                    formatted_source,
+                                });
                             }
                         }
-                    }
-                    Err(e) => {
-                        error!("Error stealthy fetching {}: {}", source_name, e);
+
+                        #[allow(clippy::collapsible_if)]
+                        if !items.is_empty() {
+                            if let Err(e) = db.insert_items(&items) {
+                                error!("Failed to insert items from {}: {}", source_name, e);
+                            }
+                        }
                     }
                 }
             });
