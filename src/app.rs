@@ -13,6 +13,7 @@ pub struct App {
     pub selected_category: usize,
     pub selected_item: usize,
     pub items: Vec<NewsItem>,
+    pub stats: (usize, usize),
     pub should_quit: bool,
     pub is_reading: bool,
 }
@@ -26,6 +27,7 @@ impl App {
             selected_category: 0,
             selected_item: 0,
             items: Vec::new(),
+            stats: (0, 0),
             should_quit: false,
             is_reading: false,
         }
@@ -33,6 +35,9 @@ impl App {
 
     pub fn on_tick(&mut self) {
         self.fetch_items_from_db();
+        if let Ok(stats) = self.db.get_stats() {
+            self.stats = stats;
+        }
     }
 
     fn fetch_items_from_db(&mut self) {
@@ -43,10 +48,8 @@ impl App {
         };
 
         if let Ok(new_items) = self.db.get_latest_items(50, cat) {
-            // Very simple list replacement for high speed
             self.items = new_items;
 
-            // Adjust bounds
             if self.items.is_empty() {
                 self.selected_item = 0;
             } else if self.selected_item >= self.items.len() {

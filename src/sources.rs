@@ -32,17 +32,7 @@ pub fn get_sources() -> Vec<FeedSource> {
             category: "Tech",
             source_name: "Ars Technica",
         },
-        FeedSource {
-            url: "https://engadget.com/rss.xml",
-            category: "Tech",
-            source_name: "Engadget",
-        },
         // AI
-        FeedSource {
-            url: "https://bair.berkeley.edu/blog/feed.xml",
-            category: "AI",
-            source_name: "BAIR",
-        },
         FeedSource {
             url: "https://openai.com/blog/rss.xml",
             category: "AI",
@@ -57,11 +47,6 @@ pub fn get_sources() -> Vec<FeedSource> {
             url: "https://towardsdatascience.com/feed",
             category: "AI",
             source_name: "Towards Data Science",
-        },
-        FeedSource {
-            url: "https://export.arxiv.org/rss/cs.AI",
-            category: "AI",
-            source_name: "arXiv (CS.AI)",
         },
         // World News
         FeedSource {
@@ -84,21 +69,27 @@ pub fn get_sources() -> Vec<FeedSource> {
             category: "World News",
             source_name: "Al Jazeera",
         },
+        // Indonesia (Added for completeness based on user language)
         FeedSource {
-            url: "http://rss.cnn.com/rss/edition.rss",
-            category: "World News",
-            source_name: "CNN",
+            url: "https://www.antaranews.com/rss/terpopuler.xml",
+            category: "Indonesia",
+            source_name: "Antara News",
+        },
+        FeedSource {
+            url: "https://rss.detik.com/index.php/detikcom",
+            category: "Indonesia",
+            source_name: "Detikcom",
+        },
+        FeedSource {
+            url: "https://www.kompas.com/tag/berita-terbaru/rss",
+            category: "Indonesia",
+            source_name: "Kompas",
         },
         // Business
         FeedSource {
             url: "https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml",
             category: "Business",
             source_name: "WSJ",
-        },
-        FeedSource {
-            url: "https://www.ft.com/?format=rss",
-            category: "Business",
-            source_name: "Financial Times",
         },
         FeedSource {
             url: "http://feeds.bloomberg.com/markets/news.rss",
@@ -111,17 +102,13 @@ pub fn get_sources() -> Vec<FeedSource> {
             category: "Entertainment",
             source_name: "IGN",
         },
-        FeedSource {
-            url: "https://www.polygon.com/rss/index.xml",
-            category: "Entertainment",
-            source_name: "Polygon",
-        },
     ]
 }
 
 pub fn get_categories() -> Vec<&'static str> {
     vec![
         "All",
+        "Indonesia",
         "Tech",
         "AI",
         "World News",
