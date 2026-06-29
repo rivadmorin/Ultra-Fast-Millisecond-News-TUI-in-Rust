@@ -106,7 +106,6 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
 
                                     if !item_url.is_empty() {
                                         items.push(NewsItem {
-                                            id: None,
                                             title,
                                             source: source_name.clone(),
                                             category: category.clone(),
