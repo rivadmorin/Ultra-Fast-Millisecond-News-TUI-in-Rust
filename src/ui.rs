@@ -99,7 +99,7 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect) {
         .iter()
         .enumerate()
         .map(|(i, item)| {
-            let datetime = Utc.timestamp_opt(item.timestamp, 0).unwrap().naive_local();
+            let datetime = Utc.timestamp_opt(item.timestamp, 0).latest().unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap()).naive_local();
             let time_str = datetime.format("%H:%M:%S").to_string();
 
             let mut style = Style::default();
@@ -135,7 +135,7 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect) {
 fn draw_reading_view(f: &mut Frame, app: &App, area: Rect) {
     let item = &app.items[app.selected_item];
 
-    let datetime = Utc.timestamp_opt(item.timestamp, 0).unwrap().naive_local();
+    let datetime = Utc.timestamp_opt(item.timestamp, 0).latest().unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap()).naive_local();
     let time_str = datetime.format("%Y-%m-%d %H:%M:%S").to_string();
 
     let mut text = vec![
