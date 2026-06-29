@@ -1,5 +1,5 @@
 use crate::app::App;
-use chrono::{TimeZone, Utc, Timelike};
+use chrono::{Utc, Timelike, TimeZone};
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
@@ -99,9 +99,6 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect) {
         .iter()
         .enumerate()
         .map(|(i, item)| {
-            let datetime = Utc.timestamp_opt(item.timestamp, 0).unwrap().naive_local();
-            let time_str = datetime.format("%H:%M:%S").to_string();
-
             let mut style = Style::default();
             if i == app.selected_item {
                 style = style.bg(Color::DarkGray);
@@ -109,11 +106,11 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect) {
 
             let content = Line::from(vec![
                 Span::styled(
-                    format!("[{}] ", time_str),
+                    &item.formatted_time,
                     Style::default().fg(Color::DarkGray),
                 ),
                 Span::styled(
-                    format!("[{}] ", item.source),
+                    &item.formatted_source,
                     Style::default().fg(Color::Green),
                 ),
                 Span::raw(&item.title),
@@ -136,7 +133,7 @@ fn draw_reading_view(f: &mut Frame, app: &App, area: Rect) {
     let item = &app.items[app.selected_item];
 
     let datetime = Utc.timestamp_opt(item.timestamp, 0).unwrap().naive_local();
-    let time_str = datetime.format("%Y-%m-%d %H:%M:%S").to_string();
+    let full_time_str = datetime.format("%Y-%m-%d %H:%M:%S").to_string();
 
     let mut text = vec![
         Line::from(Span::styled(
@@ -151,7 +148,7 @@ fn draw_reading_view(f: &mut Frame, app: &App, area: Rect) {
             Span::raw(&item.source),
             Span::raw(" | "),
             Span::styled("Time: ", Style::default().fg(Color::DarkGray)),
-            Span::raw(time_str),
+            Span::raw(full_time_str),
         ]),
         Line::from(vec![
             Span::styled("URL: ", Style::default().fg(Color::DarkGray)),

@@ -105,15 +105,15 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
                                     let timestamp = entry.published.map(|d| d.timestamp()).unwrap_or_else(|| Utc::now().timestamp());
 
                                     if !item_url.is_empty() {
-                                        items.push(NewsItem {
-                                            id: None,
+                                        items.push(NewsItem::new(
+                                            None,
                                             title,
-                                            source: source_name.clone(),
-                                            category: category.clone(),
-                                            url: item_url,
+                                            source_name.clone(),
+                                            category.clone(),
+                                            item_url,
                                             description,
                                             timestamp,
-                                        });
+                                        ));
                                     }
                                 }
 

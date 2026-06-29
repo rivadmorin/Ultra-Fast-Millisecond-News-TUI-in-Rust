@@ -1,0 +1,31 @@
+--- /dev/null
++++ /dev/null
+@@ -10,13 +10,28 @@
+
+ #[derive(Debug, Clone)]
+ pub struct NewsItem {
+     pub id: Option<i64>,
+     pub title: String,
+     pub source: String,
+     pub category: String,
+     pub url: String,
+     pub description: Option<String>,
+     pub timestamp: i64,
++    pub formatted_time: String,
++    pub formatted_source: String,
++}
++
++impl NewsItem {
++    pub fn new(id: Option<i64>, title: String, source: String, category: String, url: String, description: Option<String>, timestamp: i64) -> Self {
++        let datetime = Utc.timestamp_opt(timestamp, 0).unwrap().naive_local();
++        let formatted_time = format!("[{}] ", datetime.format("%H:%M:%S"));
++        let formatted_source = format!("[{}] ", source);
++
++        Self {
++            id, title, source, category, url, description, timestamp,
++            formatted_time, formatted_source,
++        }
++    }
+ }
+
+ pub struct SourceMeta {
