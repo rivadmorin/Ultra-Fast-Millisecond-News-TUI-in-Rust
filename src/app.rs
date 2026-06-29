@@ -16,6 +16,8 @@ pub struct App {
     pub stats: (usize, usize),
     pub should_quit: bool,
     pub is_reading: bool,
+    last_db_change_count: u64,
+    last_fetched_category: Option<usize>,
 }
 
 impl App {
@@ -30,13 +32,22 @@ impl App {
             stats: (0, 0),
             should_quit: false,
             is_reading: false,
+            last_db_change_count: u64::MAX, // Force initial fetch
+            last_fetched_category: None,
         }
     }
 
     pub fn on_tick(&mut self) {
-        self.fetch_items_from_db();
-        if let Ok(stats) = self.db.get_stats() {
-            self.stats = stats;
+        let current_change_count = self.db.get_change_count();
+        if current_change_count != self.last_db_change_count
+            || Some(self.selected_category) != self.last_fetched_category
+        {
+            self.fetch_items_from_db();
+            if let Ok(stats) = self.db.get_stats() {
+                self.stats = stats;
+            }
+            self.last_db_change_count = current_change_count;
+            self.last_fetched_category = Some(self.selected_category);
         }
     }
 
@@ -79,28 +90,29 @@ impl App {
             }
             KeyCode::Down | KeyCode::Char('j') => {
                 if !self.is_reading
-                    && !self.items.is_empty() && self.selected_item < self.items.len() - 1 {
-                        self.selected_item += 1;
-                    }
+                    && !self.items.is_empty()
+                    && self.selected_item < self.items.len() - 1
+                {
+                    self.selected_item += 1;
+                }
             }
             KeyCode::Up | KeyCode::Char('k') => {
-                if !self.is_reading
-                    && self.selected_item > 0 {
-                        self.selected_item -= 1;
-                    }
+                if !self.is_reading && self.selected_item > 0 {
+                    self.selected_item -= 1;
+                }
             }
             KeyCode::Right | KeyCode::Char('l') => {
                 if !self.is_reading && self.selected_category < self.categories.len() - 1 {
                     self.selected_category += 1;
                     self.selected_item = 0;
-                    self.fetch_items_from_db();
+                    // No longer need to fetch here, on_tick will handle it
                 }
             }
             KeyCode::Left | KeyCode::Char('h') => {
                 if !self.is_reading && self.selected_category > 0 {
                     self.selected_category -= 1;
                     self.selected_item = 0;
-                    self.fetch_items_from_db();
+                    // No longer need to fetch here, on_tick will handle it
                 }
             }
             _ => {}

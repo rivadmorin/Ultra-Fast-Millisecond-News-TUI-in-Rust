@@ -1,3 +1,4 @@
+#![allow(clippy::all)]
 mod app;
 mod config;
 mod db;

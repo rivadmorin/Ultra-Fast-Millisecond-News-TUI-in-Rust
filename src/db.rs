@@ -3,14 +3,17 @@ use chrono::Utc;
 use log::info;
 use rusqlite::{Connection, Result, params};
 use std::path::Path;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 pub struct Db {
     conn: Arc<Mutex<Connection>>,
+    change_count: AtomicU64,
 }
 
 #[derive(Debug, Clone)]
 pub struct NewsItem {
+    #[allow(dead_code)]
     pub id: Option<i64>,
     pub title: String,
     pub source: String,
@@ -66,7 +69,16 @@ impl Db {
 
         Ok(Db {
             conn: Arc::new(Mutex::new(conn)),
+            change_count: AtomicU64::new(0),
         })
+    }
+
+    pub fn get_change_count(&self) -> u64 {
+        self.change_count.load(Ordering::Relaxed)
+    }
+
+    fn increment_change_count(&self) {
+        self.change_count.fetch_add(1, Ordering::Relaxed);
     }
 
     pub fn insert_items(&self, items: &[NewsItem]) -> Result<usize> {
@@ -94,6 +106,9 @@ impl Db {
         }
 
         tx.commit()?;
+        if count > 0 {
+            self.increment_change_count();
+        }
         Ok(count)
     }
 
@@ -139,7 +154,8 @@ impl Db {
 
     pub fn get_source_meta(&self, url: &str) -> Result<Option<SourceMeta>> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt = conn.prepare("SELECT url, etag, last_modified FROM sources_meta WHERE url = ?1")?;
+        let mut stmt =
+            conn.prepare("SELECT url, etag, last_modified FROM sources_meta WHERE url = ?1")?;
         let mut rows = stmt.query(params![url])?;
 
         if let Some(row) = rows.next()? {
@@ -168,6 +184,7 @@ impl Db {
         let deleted = conn.execute("DELETE FROM news WHERE timestamp < ?1", params![cutoff])?;
         if deleted > 0 {
             info!("Cleaned up {} old records", deleted);
+            self.increment_change_count();
         }
         Ok(deleted)
     }
@@ -182,7 +199,8 @@ impl Db {
     pub fn get_stats(&self) -> Result<(usize, usize)> {
         let conn = self.conn.lock().unwrap();
         let count: usize = conn.query_row("SELECT COUNT(*) FROM news", [], |r| r.get(0))?;
-        let sources: usize = conn.query_row("SELECT COUNT(DISTINCT source) FROM news", [], |r| r.get(0))?;
+        let sources: usize =
+            conn.query_row("SELECT COUNT(DISTINCT source) FROM news", [], |r| r.get(0))?;
         Ok((count, sources))
     }
 }
