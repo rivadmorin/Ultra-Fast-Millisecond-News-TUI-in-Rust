@@ -1,72 +1,112 @@
-# Live News TUI 🚀
+# 🚀 Live News TUI: Terminal Intelligence Engine
 
-Live News TUI adalah aplikasi Terminal User Interface (TUI) berbasis Rust yang menyediakan feed berita real-time secara gratis, cepat, dan efisien. Aplikasi ini mengintegrasikan mesin scraping canggih berbasis Python (**Scrapling**) untuk melewati proteksi anti-bot dan menyediakan data dari berbagai sumber global.
+**Live News TUI** adalah platform agregator berita berbasis terminal yang dibangun dengan filosofi "Speed, Stealth, and Stability". Menggabungkan performa tinggi bahasa **Rust** dengan kecanggihan mesin scraping **Python (Scrapling)**, aplikasi ini memberikan akses berita real-time dari seluruh dunia langsung ke workstation Anda tanpa iklan, tanpa pelacakan, dan tanpa hambatan bot-protection.
+
+---
 
 ## ✨ Fitur Unggulan
 
-- **Stealthy Fetching**: Menggunakan `Scrapling` (Python) melalui `PyO3` dengan fitur `solve_cloudflare=True` untuk akses berita tanpa hambatan.
-- **Berbagai Kategori Berita**:
-  - **Finansial**: Bloomberg, WSJ, CNBC, Financial Times, The Economist.
-  - **Geopolitik & Dunia**: Reuters, BBC, NYT, Al Jazeera, The Guardian.
-  - **Teknologi & AI**: Hacker News, TechCrunch, OpenAI, DeepMind.
-  - **Gaya Hidup**: National Geographic, Vogue, GQ, Rolling Stone.
-  - **Indonesia**: Detik, Kompas, Antara, CNN Indonesia.
-- **Refresh Countdown**: Indikator hitung mundur real-time di header (Sync Countdown).
-- **GitUI Aesthetic**: Layout modern dengan panel, border bulat, dan navigasi intuitif.
-- **Multi-Theme Engine**: 4 tema warna (Black, White, DeepBlue, Matrix).
-- **Search & Filter**: Pencarian adaptif dengan menekan `/`.
+### 🕵️ Stealth Engine (Rust + Python Hybrid)
+Mengintegrasikan library `Scrapling` melalui bridge `PyO3`, aplikasi ini mampu mensimulasikan perilaku manusia yang sangat nyata untuk melewati proteksi seperti Cloudflare 403/429. Data diambil dalam format raw bytes, lalu diproses secara asinkron menggunakan parsing feed berperforma tinggi di sisi Rust.
+
+### 🌐 Cakupan Berita Global yang Masif
+Nikmati akses ke berbagai kategori berita kelas dunia:
+- **🇮🇩 Indonesia**: Detikcom, Kompas, Antara, CNN Indonesia, Liputan6, Merdeka.
+- **🌍 World & Geopolitics**: Reuters Politics, BBC News, NYT World, Al Jazeera, SCMP, The Guardian.
+- **💰 Finance & Business**: Bloomberg Markets, Wall Street Journal, Financial Times, CNBC, The Economist, Investing.com.
+- **🔬 Tech & AI**: Hacker News, TechCrunch, OpenAI, DeepMind, The Verge, Wired.
+- **₿ Crypto**: CoinDesk, CoinTelegraph, Bitcoin Magazine.
+- **🧪 Science & Health**: NASA, Nature, Science Daily, Healthline.
+- **🎭 Lifestyle & Culture**: Vogue, GQ, National Geographic, Rolling Stone.
+- **⚽ Sports**: ESPN, BBC Sport.
+
+### 🎨 Antarmuka GitUI Aesthetic
+Didesain dengan inspirasi estetika **GitUI**, menawarkan layout panel yang bersih, border membulat (rounded), dan navigasi yang sangat responsif.
+- **Multi-Theme Engine**: Black (Default), White (High Contrast), DeepBlue (Modern), dan Matrix (Classic Green).
+- **Adaptive Search**: Bar pencarian cerdas (`/`) yang memfilter judul dan deskripsi secara instan.
+- **Sync Countdown**: Indikator hitung mundur di header yang memberitahu Anda kapan sinkronisasi berikutnya terjadi secara presisi.
+
+---
 
 ## 🏛️ Arsitektur Sistem
 
-### Alur Data (Rust + Python Hybrid)
+Aplikasi ini menggunakan arsitektur *multi-layered* untuk menjamin skalabilitas dan efisiensi sumber daya:
+
+### Visual Data Flow (Mermaid)
 
 ```mermaid
 graph TD
-    subgraph Rust_Core [Rust Core Engine]
-        A[Ratatui UI]
-        B[App State]
-        C[SQLite DB]
-        D[Tokio Runtime]
+    subgraph UI_Layer [Terminal UI - Ratatui]
+        A[View Manager]
+        B[Theme Engine]
+        C[Input Handler]
     end
 
-    subgraph Python_Bridge [PyO3 Bridge]
-        E[Scrapling Fetcher]
+    subgraph Core_Logic [Rust Backend - Tokio]
+        D[App State Store]
+        E[Background Fetcher]
+        F[Async SQLite]
     end
 
-    subgraph Data_Flow
-        F[News Sources] -->|Stealthy GET| E
-        E -->|Raw Bytes| D
-        D -->|Parse RSS| C
-        C -->|Change Event| B
-        B -->|Draw| A
+    subgraph Python_Bridge [Scraping Module - PyO3]
+        G[Scrapling Stealth Session]
+        H[Anti-Bot Solver]
     end
 
-    G[TOML Config] --> B
+    I[News Sources - Internet] -->|Stealth Fetch| G
+    G -->|raw bytes| E
+    E -->|Write Transaction| F
+    F -->|Query Result| D
+    D -->|State Update| A
+    B -->|Dynamic Styles| A
+    C -->|Events| D
 ```
 
-## 🛠️ Manajemen Aplikasi
+---
 
-### 📥 Instalasi (Otomatis)
+## 🛠️ Panduan Instalasi & DevOps
+
+### 1. Prasyarat
+- **Rust Toolchain** (1.75+)
+- **Python 3.10+**
+- Library Scrapling: `pip install scrapling`
+
+### 2. Instalasi Cepat (One-Command)
 ```bash
 ./install.sh
 ```
-*Pastikan Python 3 dan `pip install scrapling` tersedia di sistem Anda.*
+Skrip ini akan mengonfigurasi dependensi sistem, mengompilasi biner dalam mode `--release`, dan menambahkannya ke PATH Anda.
 
-### 🔄 Update & 🗑️ Uninstall
-```bash
-./update.sh
-./uninstall.sh
-```
+### 3. Pemeliharaan
+- **Update**: `./update.sh` (Sinkronisasi dengan repo utama dan kompilasi ulang).
+- **Uninstall**: `./uninstall.sh` (Menghapus biner dari sistem).
 
-## ⌨️ Navigasi & Pintasan
+---
 
-- **/** : Buka Pencarian.
-- **t** : Ganti Tema Warna.
-- **Enter** : Baca detail berita.
-- **Esc / q** : Kembali / Keluar.
-- **h / l** : Ganti kategori.
-- **?** : Bantuan.
+## ⌨️ Navigasi & Pintasan Keyboard
 
-## 📄 Lisensi
+| Tombol | Aksi |
+| :--- | :--- |
+| `/` | Membuka bar pencarian |
+| `t` | Mengganti tema warna secara instan |
+| `Enter` | Membaca detail berita terpilih |
+| `Esc / q` | Kembali ke daftar atau keluar dari aplikasi |
+| `h / l` | Berpindah antar kategori berita |
+| `j / k` | Navigasi daftar berita (Atas/Bawah) |
+| `?` | Menampilkan menu bantuan (Popup) |
 
-Sepenuhnya gratis dan terbuka.
+---
+
+## ⚙️ Konfigurasi (config.toml)
+Konfigurasi dapat disesuaikan di `~/.config/live_news_tui/config.toml` (Linux/macOS) atau lokasi standar Windows:
+- `retention`: Durasi penyimpanan berita (Hourly, Daily, Weekly).
+- `fetch_interval_active_seconds`: Frekuensi update saat jam aktif.
+- `worker_threads`: Jumlah koneksi simultan untuk fetching.
+
+---
+
+## 📄 Lisensi & Kontribusi
+Proyek ini **100% Gratis** dan Open Source. Kontribusi sangat dihargai untuk memperluas jangkauan sumber berita global lainnya.
+
+---
+*Built with ❤️ by Senior Rust Engineers for the global community.*
