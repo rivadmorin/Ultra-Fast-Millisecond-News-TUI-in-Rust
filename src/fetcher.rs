@@ -3,7 +3,7 @@ use crate::cleanser;
 use crate::config::Config;
 use crate::db::{Db, NewsItem, SourceMeta};
 use crate::sources::get_sources;
-use chrono::{Datelike, Timelike, Utc};
+use chrono::{Datelike, TimeZone, Timelike, Utc};
 use log::{error, info, warn};
 use rand::seq::SliceRandom;
 use reqwest::Client;
@@ -162,6 +162,13 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
                                         .unwrap_or_else(|| Utc::now().timestamp());
 
                                     if !item_url.is_empty() && !title.is_empty() {
+                                        let datetime = Utc
+                                            .timestamp_opt(published_at, 0)
+                                            .latest()
+                                            .unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap());
+                                        let formatted_time = datetime.format("%H:%M").to_string();
+                                        let formatted_source = format!("[{}]", source_name);
+
                                         items.push(NewsItem {
                                             title,
                                             source: source_name.clone(),
@@ -169,6 +176,8 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
                                             url: item_url,
                                             content_summary,
                                             published_at,
+                                            formatted_time,
+                                            formatted_source,
                                         });
                                     }
                                 }

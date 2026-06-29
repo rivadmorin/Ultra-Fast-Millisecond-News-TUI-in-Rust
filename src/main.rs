@@ -23,7 +23,8 @@ use tokio::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let config = Config::default();
+    // Load config from file or defaults
+    let config = Config::load();
 
     let db_path = if let Some(proj_dirs) = ProjectDirs::from("com", "LiveNewsTUI", "LiveNews") {
         let db_dir = proj_dirs.data_local_dir();

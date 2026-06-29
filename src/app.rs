@@ -16,6 +16,7 @@ pub struct App {
     pub stats: (usize, usize),
     pub should_quit: bool,
     pub is_reading: bool,
+    last_db_change: u64,
 }
 
 impl App {
@@ -30,13 +31,18 @@ impl App {
             stats: (0, 0),
             should_quit: false,
             is_reading: false,
+            last_db_change: 0,
         }
     }
 
     pub fn on_tick(&mut self) {
-        self.fetch_items_from_db();
-        if let Ok(stats) = self.db.get_stats() {
-            self.stats = stats;
+        let current_change = self.db.get_change_count();
+        if current_change > self.last_db_change {
+            self.fetch_items_from_db();
+            if let Ok(stats) = self.db.get_stats() {
+                self.stats = stats;
+            }
+            self.last_db_change = current_change;
         }
     }
 
