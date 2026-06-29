@@ -3,7 +3,7 @@ use chrono::{TimeZone, Utc};
 use log::info;
 use rusqlite::{Connection, Result, params};
 use std::path::Path;
-use std::sync::atomic::{AtomicU64, AtomicI64, Ordering};
+use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 pub struct Db {
@@ -28,6 +28,11 @@ impl Db {
     pub fn new<P: AsRef<Path>>(path: P) -> Result<Self> {
         let conn = Connection::open(path)?;
 
+        // Performance Pragmas
+        conn.execute("PRAGMA journal_mode = WAL", [])?;
+        conn.execute("PRAGMA synchronous = NORMAL", [])?;
+        conn.execute("PRAGMA cache_size = -64000", [])?; // 64MB cache
+
         conn.execute(
             "CREATE TABLE IF NOT EXISTS news (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,7 +55,7 @@ impl Db {
             [],
         )?;
 
-        info!("Database initialized");
+        info!("Database initialized with performance optimizations");
 
         Ok(Db {
             conn: Arc::new(Mutex::new(conn)),

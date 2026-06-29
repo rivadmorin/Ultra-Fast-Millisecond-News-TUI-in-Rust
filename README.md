@@ -1,53 +1,43 @@
-# 🚀 Live News TUI: Ultimate Terminal Intelligence Aggregator
+# 🚀 Live News TUI: The Ultimate Terminal Intelligence Aggregator
 
-**Live News TUI** adalah platform agregator berita berbasis Terminal User Interface (TUI) yang revolusioner. Dibangun dengan fokus pada **kecepatan milidetik**, **privasi total**, dan **estetika profesional**. Aplikasi ini menggabungkan ketangguhan sistem **Rust** dengan fleksibilitas mesin scraping **Python (Scrapling)** untuk memberikan pengalaman membaca berita tanpa gangguan iklan, pelacakan, atau limitasi akses.
+**Live News TUI** adalah platform agregator berita berbasis Terminal User Interface (TUI) tingkat elit. Dirancang untuk kecepatan milidetik, privasi mutlak, dan estetika profesional kelas workstation. Aplikasi ini menggabungkan ketangguhan sistem **Rust** dengan fleksibilitas mesin scraping **Python (Scrapling)** dan kemampuan pencarian global **DuckDuckGo** untuk menghadirkan berita global secara stealth.
 
 ---
 
-## ✨ Fitur Utama (Highlight)
+## ✨ Fitur Unggulan (Elite Features)
 
 ### 🕵️ Stealth Scraping Engine (Hybrid Architecture)
-Ditenagai oleh library `Scrapling` di sisi Python yang dipanggil secara native oleh Rust melalui `PyO3`.
-- **Bypass Bot Protection**: Dilengkapi dengan `solve_cloudflare=True` untuk menembus proteksi situs berita modern.
-- **Adaptive Extraction**: Menggunakan selektor CSS adaptif untuk mengambil konten dari berbagai struktur DOM secara cerdas.
-- **Stealthy Sessions**: Mensimulasikan sidik jari browser manusia asli untuk menghindari blokir IP.
+Ditenagai oleh library `Scrapling` di sisi Python yang diintegrasikan secara native melalui `PyO3`.
+- **Anti-Bot Bypass**: Menembus proteksi Cloudflare (403/429) secara otomatis.
+- **Stealthy Sessions**: Mensimulasikan sidik jari browser manusia asli.
 
-### 🌐 Cakupan Berita Global Terluas
-Akses ke puluhan sumber berita premium yang dikategorikan secara rapi:
-- **🇮🇩 Indonesia**: Detikcom, Kompas, Antara News, CNN Indonesia, Liputan6, Merdeka.
-- **🌍 World & Geopolitics**: Reuters, BBC News, NYT World, Al Jazeera, The Guardian, SCMP.
-- **💰 Finance & Business**: Bloomberg Markets, WSJ, Financial Times, CNBC, The Economist, Investing.com.
-- **🔬 Tech & AI**: Hacker News (YCombinator), TechCrunch, OpenAI, DeepMind, The Verge, Wired.
-- **₿ Crypto**: CoinDesk, CoinTelegraph, Bitcoin Magazine.
-- **🧪 Science & Health**: NASA, Nature, Science Daily, Healthline.
-- **🎭 Lifestyle & Culture**: Vogue, GQ, National Geographic, Rolling Stone.
-- **⚽ Sports**: ESPN, BBC Sport.
+### 🔍 Custom Global Search (DuckDuckGo Integration)
+Bosan dengan sumber yang ada? Cari berita apapun di seluruh dunia secara real-time:
+- **Global Search (`s`)**: Tekan `s` untuk melakukan pencarian kata kunci global menggunakan engine DuckDuckGo.
+- **Instant Filtering**: Filter hasil pencarian secara instan langsung di terminal.
 
-### ⚡ Performa Maksimal & Efisiensi Tinggi
-- **Event-Driven UI**: Rendering hanya terjadi saat ada perubahan data atau input user, menghemat penggunaan CPU hingga < 1%.
-- **Async Data Pipeline**: Menggunakan `Tokio` runtime untuk melakukan fetch ribuan berita di latar belakang tanpa lag pada UI.
-- **Lightning Fast Database**: Didukung oleh `SQLite` dengan indeks teroptimasi untuk pencarian instan dalam ribuan artikel.
-- **O(1) Render Time**: Field waktu dan sumber sudah di-preformat di sisi DB untuk menjamin kecepatan scroll yang halus.
+### 🌐 Cakupan Berita Masif (100+ Premium Sources)
+- **🇮🇩 Indonesia Premium**: Detikcom, Kompas, Antara, CNN ID, CNBC ID, Tempo, Bisnis.com, Republika, Kumparan.
+- **🌍 Geopolitik & World**: Reuters, BBC, NYT World, Al Jazeera, SCMP, The Guardian, DW, France 24.
+- **💰 Finance & Global Economy**: Bloomberg, WSJ, Financial Times, The Economist, Investing.com, Forbes.
+- **🔬 Tech, AI & Innovation**: Hacker News, TechCrunch, OpenAI, DeepMind, The Verge, Wired.
+- **₿ Crypto & Web3**: CoinDesk, CoinTelegraph, Bitcoin Magazine, Decrypt, The Block.
+- **🧪 Science & Health**: NASA, Nature, Science Daily, Healthline, WHO, LiveScience.
 
-### 🎨 Antarmuka GitUI Aesthetic
-Layout profesional yang terinspirasi dari **GitUI**:
-- **Rounded Borders**: Memberikan kesan modern dan bersih.
-- **Multi-Theme Engine**:
-  - `Black`: Deep black untuk efisiensi energi layar OLED.
-  - `White`: Kontras tinggi untuk penggunaan di siang hari.
-  - `DeepBlue`: Skema warna workstation modern.
-  - `Matrix`: Estetika klasik hacker (Hijau-Hitam).
-- **Sync Countdown**: Indikator real-time kapan berita akan disinkronisasi berikutnya.
+### ⚡ Performa Workstation Modern
+- **Rust/Tokio Core**: Arsitektur asinkron untuk performa tanpa hambatan.
+- **SQLite WAL Mode**: Database teroptimasi untuk manajemen ribuan artikel.
+- **Sync Countdown**: Indikator hitung mundur real-time untuk sinkronisasi berita.
 
 ---
 
 ## 🏛️ Arsitektur Sistem
 
-### Visual Alur Data (Mermaid)
+### Visual Alur Data (Hybrid Rust-Python)
 
 ```mermaid
 graph TD
-    subgraph UI_Layer [User Interface - Ratatui]
+    subgraph UI_Layer [Terminal UI - Ratatui]
         A[View Manager]
         B[Theme Engine]
         C[Input Event Handler]
@@ -59,38 +49,34 @@ graph TD
         F[Async SQLite Manager]
     end
 
-    subgraph Stealth_Module [Scraping Engine - Python/Scrapling]
-        G[StealthySession]
-        H[Anti-Bot Solver]
+    subgraph Python_Bridge [Stealth Module - PyO3]
+        G[Scrapling Fetcher]
+        H[DuckDuckGo Search]
     end
 
-    I[Global News Sources] -->|HTTPS Stealth Fetch| G
-    G -->|Raw Data| E
+    I[Global Sources] -->|Stealth Fetch| G
+    H -->|Search Results| D
+    G -->|Raw Bytes| E
     E -->|Write Transaction| F
     F -->|Indexed Query| D
     D -->|State Subscription| A
     B -->|Dynamic Styling| A
-    C -->|Update Events| D
+    C -->|Events / Actions| D
 ```
 
 ---
 
 ## 🛠️ Panduan Instalasi & DevOps
 
-### 1. Prasyarat Sistem
+### 1. Prasyarat
 - **Rust Toolchain** (v1.75+)
 - **Python** (v3.10+)
-- **Scrapling**: `pip install scrapling`
+- **Dependencies**: `pip install scrapling duckduckgo-search`
 
 ### 2. Instalasi Satu Perintah
 ```bash
 ./install.sh
 ```
-Skrip ini akan otomatis mendeteksi OS (Linux/macOS), menginstal dependensi yang kurang, mengompilasi biner performa tinggi (`--release`), dan mendaftarkannya ke PATH sistem Anda.
-
-### 3. Pemeliharaan
-- **Pembaruan**: `./update.sh` (Mengambil kode terbaru dan re-build otomatis).
-- **Penghapusan**: `./uninstall.sh` (Menghapus biner secara bersih).
 
 ---
 
@@ -98,26 +84,20 @@ Skrip ini akan otomatis mendeteksi OS (Linux/macOS), menginstal dependensi yang 
 
 | Tombol | Aksi |
 | :--- | :--- |
-| `/` | **Search**: Cari berita secara instan di semua kategori |
-| `t` | **Theme**: Ganti tema warna (Black, White, DeepBlue, Matrix) |
-| `Enter` | **Read**: Buka detail artikel lengkap |
+| `s` | **Global Search**: Cari topik berita apapun di dunia (via DDG) |
+| `/` | **Local Search**: Filter berita di kategori yang sedang dibuka |
+| `t` | **Theme**: Ganti tema (Black, White, DeepBlue, Matrix) |
+| `o` | **Open**: Buka URL berita di Browser sistem default |
+| `Enter` | **Read**: Baca detail artikel di terminal |
 | `Esc / q` | **Back**: Kembali ke daftar berita atau keluar aplikasi |
-| `h / l` | **Category**: Berpindah antar tab kategori berita |
-| `j / k` | **Navigate**: Scroll daftar berita (Atas/Bawah) |
-| `?` | **Help**: Tampilkan jendela bantuan shortcut |
-
----
-
-## ⚙️ Konfigurasi (config.toml)
-Dapat ditemukan di `~/.config/live_news_tui/config.toml`. Anda dapat menyesuaikan:
-- `fetch_interval_active_seconds`: Seberapa sering berita diupdate.
-- `retention`: Durasi penyimpanan data sebelum dihapus otomatis.
-- `worker_threads`: Jumlah koneksi paralel untuk fetching data.
+| `h / l` | **Category**: Navigasi antar tab kategori |
+| `j / k` | **Navigate**: Scroll daftar berita |
+| `?` | **Help**: Tampilkan jendela bantuan |
 
 ---
 
 ## 📄 Lisensi
-Proyek ini dilisensikan di bawah lisensi terbuka dan **100% Gratis** untuk digunakan selamanya.
+Proyek ini **100% Open Source & Gratis** selamanya.
 
 ---
-*Dikembangkan dengan dedikasi untuk komunitas Open Source oleh Senior Rust & DevOps Engineers.*
+*Built with ❤️ by Senior Rust Engineers for the global intelligence community.*

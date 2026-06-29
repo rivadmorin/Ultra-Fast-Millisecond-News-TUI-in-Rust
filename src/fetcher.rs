@@ -1,14 +1,14 @@
 use crate::config::Config;
 use crate::db::{Db, NewsItem};
-use crate::sources::get_sources;
 use crate::scraper::Scraper;
+use crate::sources::get_sources;
 use chrono::{Datelike, TimeZone, Timelike, Utc};
 use log::{error, info};
+use std::io::Cursor;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 use tokio::sync::Semaphore;
 use tokio::time::{Duration, sleep};
-use std::io::Cursor;
 
 pub async fn start_fetcher(db: Arc<Db>, config: Config) {
     let sources = get_sources();
@@ -34,7 +34,8 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
             config.fetch_interval_idle_seconds
         };
 
-        db.next_fetch_timestamp.store(now.timestamp() + interval_secs as i64, Ordering::Relaxed);
+        db.next_fetch_timestamp
+            .store(now.timestamp() + interval_secs as i64, Ordering::Relaxed);
 
         info!(
             "Starting stealthy fetch cycle for {} sources (Mode: {})",
@@ -56,9 +57,8 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
 
                 info!("Stealthy fetching: {}", source_name);
 
-                let fetch_result = tokio::task::spawn_blocking(move || {
-                    Scraper::fetch_raw(&url)
-                }).await;
+                let fetch_result =
+                    tokio::task::spawn_blocking(move || Scraper::fetch_raw(&url)).await;
 
                 if let Ok(Ok(bytes)) = fetch_result {
                     let cursor = Cursor::new(bytes);
@@ -75,7 +75,8 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
                                 .map(|l| l.href.clone())
                                 .unwrap_or_default();
 
-                            let description = entry.summary.map(|s| html2md::parse_html(&s.content));
+                            let description =
+                                entry.summary.map(|s| html2md::parse_html(&s.content));
 
                             let timestamp = entry
                                 .published

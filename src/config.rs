@@ -1,6 +1,6 @@
+use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::fs;
-use directories::ProjectDirs;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RetentionPolicy {
