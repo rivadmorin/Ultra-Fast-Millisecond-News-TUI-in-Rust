@@ -56,7 +56,6 @@ impl App {
     pub fn on_tick(&mut self) {
         let current_change = self.db.get_change_count();
 
-        // Update countdown
         let now = chrono::Utc::now().timestamp();
         let next = self.db.next_fetch_timestamp.load(Ordering::Relaxed);
         self.refresh_countdown = (next - now).max(0);
@@ -83,7 +82,7 @@ impl App {
             Some(self.search_query.as_str())
         };
 
-        if let Ok(new_items) = self.db.get_latest_items(100, cat, search) {
+        if let Ok(new_items) = self.db.get_latest_items(200, cat, search) {
             self.items = new_items;
 
             if self.items.is_empty() {
@@ -145,6 +144,12 @@ impl App {
                     Theme::DeepBlue => Theme::Matrix,
                     Theme::Matrix => Theme::Black,
                 };
+            }
+            KeyCode::Char('o') => {
+                if !self.items.is_empty() {
+                    let url = &self.items[self.selected_item].url;
+                    let _ = webbrowser::open(url);
+                }
             }
             KeyCode::Esc => {
                 if self.view_mode == ViewMode::Reading {

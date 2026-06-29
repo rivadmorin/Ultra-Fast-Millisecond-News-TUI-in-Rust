@@ -2,15 +2,15 @@ mod app;
 mod config;
 mod db;
 mod fetcher;
+mod scraper;
 mod sources;
 mod ui;
-mod scraper;
 
 use app::{App, AppEvent};
 use config::Config;
 use db::Db;
 use directories::ProjectDirs;
-use std::{error::Error, io, sync::Arc, env};
+use std::{env, error::Error, io, sync::Arc};
 
 use crossterm::{
     event::{self, Event as CEvent},
@@ -25,7 +25,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() > 1 && args[1] == "--scrape" {
-        let url = if args.len() > 2 { &args[2] } else { "https://techcrunch.com/2024/03/18/nvidia-blackwell-gpu-b200/" };
+        let url = if args.len() > 2 {
+            &args[2]
+        } else {
+            "https://techcrunch.com/2024/03/18/nvidia-blackwell-gpu-b200/"
+        };
         println!("Scraping URL: {}", url);
         scraper::run_example_scraper(url)?;
         return Ok(());
