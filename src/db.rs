@@ -31,12 +31,7 @@ pub struct SourceMeta {
 
 impl Db {
     pub fn new<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let path_ref = path.as_ref();
-        let conn = Connection::open(path_ref)?;
-
-        // Using WAL mode for better concurrency during high-frequency ingestion
-        conn.execute("PRAGMA journal_mode = WAL", [])?;
-        conn.execute("PRAGMA synchronous = NORMAL", [])?;
+        let conn = Connection::open(path)?;
 
         conn.execute(
             "CREATE TABLE IF NOT EXISTS news (
@@ -45,8 +40,8 @@ impl Db {
                 source TEXT NOT NULL,
                 category TEXT NOT NULL,
                 url TEXT NOT NULL UNIQUE,
-                content_summary TEXT,
-                published_at INTEGER NOT NULL
+                description TEXT,
+                timestamp INTEGER NOT NULL
             )",
             [],
         )?;
@@ -62,7 +57,7 @@ impl Db {
 
         // Create indexes for faster queries
         conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_published_at ON news (published_at)",
+            "CREATE INDEX IF NOT EXISTS idx_timestamp ON news (timestamp)",
             [],
         )?;
         conn.execute(
@@ -70,7 +65,7 @@ impl Db {
             [],
         )?;
 
-        info!("Database initialized at {:?}", path_ref);
+        info!("Database initialized");
 
         Ok(Db {
             conn: Arc::new(Mutex::new(conn)),
@@ -93,7 +88,7 @@ impl Db {
 
         {
             let mut stmt = tx.prepare(
-                "INSERT OR IGNORE INTO news (title, source, category, url, content_summary, published_at)
+                "INSERT OR IGNORE INTO news (title, source, category, url, description, timestamp)
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
             )?;
 
@@ -103,8 +98,8 @@ impl Db {
                     item.source,
                     item.category,
                     item.url,
-                    item.content_summary,
-                    item.published_at,
+                    item.description,
+                    item.timestamp,
                 ])?;
                 count += res;
             }
@@ -117,28 +112,36 @@ impl Db {
         Ok(count)
     }
 
-    pub fn get_latest_items(&self, limit: usize, category: Option<&str>) -> Result<Vec<NewsItem>> {
+    pub fn get_latest_items(
+        &self,
+        limit: usize,
+        category: Option<&str>,
+        search: Option<&str>,
+    ) -> Result<Vec<NewsItem>> {
         let conn = self.conn.lock().unwrap();
 
-        let mut query =
-            String::from("SELECT title, source, category, url, description, timestamp FROM news");
-        if category.is_some() {
-            query.push_str(" WHERE category = ?1");
+        let mut query = String::from(
+            "SELECT title, source, category, url, description, timestamp FROM news WHERE 1=1",
+        );
+        let mut params_vec: Vec<rusqlite::types::Value> = Vec::new();
+
+        if let Some(cat) = category {
+            query.push_str(" AND category = ?");
+            params_vec.push(rusqlite::types::Value::Text(cat.to_string()));
         }
-        query.push_str(" ORDER BY published_at DESC LIMIT ");
-        if category.is_some() {
-            query.push_str("?2");
-        } else {
-            query.push_str("?1");
+
+        if let Some(q) = search {
+            query.push_str(" AND (title LIKE ? OR description LIKE ?)");
+            let pattern = format!("%{}%", q);
+            params_vec.push(rusqlite::types::Value::Text(pattern.clone()));
+            params_vec.push(rusqlite::types::Value::Text(pattern));
         }
+
+        query.push_str(" ORDER BY timestamp DESC LIMIT ?");
+        params_vec.push(rusqlite::types::Value::Integer(limit as i64));
 
         let mut stmt = conn.prepare(&query)?;
-
-        let mut rows = if let Some(cat) = category {
-            stmt.query(params![cat, limit as i64])?
-        } else {
-            stmt.query(params![limit as i64])?
-        };
+        let mut rows = stmt.query(rusqlite::params_from_iter(params_vec))?;
 
         let mut items = Vec::new();
         while let Some(row) = rows.next()? {
@@ -197,7 +200,7 @@ impl Db {
     pub fn cleanup_old_data(&self, policy: &RetentionPolicy) -> Result<usize> {
         let conn = self.conn.lock().unwrap();
         let cutoff = Utc::now().timestamp() - (policy.as_seconds() as i64);
-        let deleted = conn.execute("DELETE FROM news WHERE published_at < ?1", params![cutoff])?;
+        let deleted = conn.execute("DELETE FROM news WHERE timestamp < ?1", params![cutoff])?;
         if deleted > 0 {
             info!("Cleaned up {} old records", deleted);
             self.increment_change_counter();
