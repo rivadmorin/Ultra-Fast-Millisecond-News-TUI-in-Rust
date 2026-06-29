@@ -160,9 +160,9 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
                                         .map(|d| d.timestamp())
                                         .unwrap_or_else(|| Utc::now().timestamp());
 
-                                    if !item_url.is_empty() && !title.is_empty() {
+                                    if !item_url.is_empty() {
                                         let datetime = Utc
-                                            .timestamp_opt(published_at, 0)
+                                            .timestamp_opt(timestamp, 0)
                                             .latest()
                                             .unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap());
                                         let formatted_time = datetime.format("%H:%M").to_string();
@@ -173,8 +173,8 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
                                             source: source_name.clone(),
                                             category: category.clone(),
                                             url: item_url,
-                                            content_summary,
-                                            published_at,
+                                            description,
+                                            timestamp,
                                             formatted_time,
                                             formatted_source,
                                         });

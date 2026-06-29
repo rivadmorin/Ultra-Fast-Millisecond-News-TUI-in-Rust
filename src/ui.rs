@@ -24,7 +24,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     // Header
     let now = Utc::now();
     let hour = now.hour();
-    let is_active = (6..22).contains(&hour);
+    let is_active = hour >= 6 && hour < 22;
 
     let mode_str = if is_active { "ACTIVE" } else { "IDLE" };
     let mode_color = if is_active {
@@ -171,9 +171,9 @@ fn draw_reading_view(f: &mut Frame, app: &App, area: Rect) {
             Span::raw(" | "),
             Span::styled("Time: ", Style::default().fg(Color::DarkGray)),
             Span::raw(
-                Utc.timestamp_opt(item.published_at, 0)
+                Utc.timestamp_opt(item.timestamp, 0)
                     .latest()
-                    .unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap())
+                    .unwrap()
                     .format("%Y-%m-%d %H:%M:%S")
                     .to_string(),
             ),

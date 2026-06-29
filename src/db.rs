@@ -17,8 +17,8 @@ pub struct NewsItem {
     pub source: String,
     pub category: String,
     pub url: String,
-    pub content_summary: Option<String>,
-    pub published_at: i64,
+    pub description: Option<String>,
+    pub timestamp: i64,
     pub formatted_time: String,
     pub formatted_source: String,
 }
@@ -120,9 +120,8 @@ impl Db {
     pub fn get_latest_items(&self, limit: usize, category: Option<&str>) -> Result<Vec<NewsItem>> {
         let conn = self.conn.lock().unwrap();
 
-        let mut query = String::from(
-            "SELECT title, source, category, url, content_summary, published_at FROM news",
-        );
+        let mut query =
+            String::from("SELECT title, source, category, url, description, timestamp FROM news");
         if category.is_some() {
             query.push_str(" WHERE category = ?1");
         }
@@ -143,12 +142,12 @@ impl Db {
 
         let mut items = Vec::new();
         while let Some(row) = rows.next()? {
-            let published_at: i64 = row.get(5)?;
+            let timestamp: i64 = row.get(5)?;
             let source: String = row.get(1)?;
 
             // Pre-format time and source
             let datetime = Utc
-                .timestamp_opt(published_at, 0)
+                .timestamp_opt(timestamp, 0)
                 .latest()
                 .unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap());
             let formatted_time = datetime.format("%H:%M").to_string();
@@ -159,8 +158,8 @@ impl Db {
                 source,
                 category: row.get(2)?,
                 url: row.get(3)?,
-                content_summary: row.get(4)?,
-                published_at,
+                description: row.get(4)?,
+                timestamp,
                 formatted_time,
                 formatted_source,
             });
