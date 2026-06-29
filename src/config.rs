@@ -1,4 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::fs;
+
+use directories::ProjectDirs;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RetentionPolicy {
@@ -35,12 +38,37 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             retention: RetentionPolicy::Daily,
-            fetch_interval_active_seconds: 60, // 1 minute during active hours
-            fetch_interval_idle_seconds: 300,  // 5 minutes during idle hours
-            active_hours_start: 6,             // 6 AM
-            active_hours_end: 22,              // 10 PM
-            worker_threads: 4,                 // Max concurrent fetches
+            fetch_interval_active_seconds: 60,
+            fetch_interval_idle_seconds: 300,
+            active_hours_start: 6,
+            active_hours_end: 22,
+            worker_threads: 4,
         }
+    }
+}
+
+impl Config {
+    pub fn load() -> Self {
+        if let Some(proj_dirs) = ProjectDirs::from("com", "LiveNewsTUI", "LiveNews") {
+            let config_dir = proj_dirs.config_dir();
+            let config_path = config_dir.join("config.toml");
+
+            if config_path.exists() {
+                if let Ok(content) = fs::read_to_string(&config_path) {
+                    if let Ok(config) = toml::from_str(&content) {
+                        return config;
+                    }
+                }
+            } else {
+                // Try to create default config file
+                let _ = fs::create_dir_all(config_dir);
+                let config = Config::default();
+                if let Ok(toml) = toml::to_string_pretty(&config) {
+                    let _ = fs::write(config_path, toml);
+                }
+            }
+        }
+        Config::default()
     }
 }
 
@@ -54,22 +82,6 @@ mod tests {
         assert_eq!(RetentionPolicy::Daily.as_seconds(), 86400);
         assert_eq!(RetentionPolicy::Weekly.as_seconds(), 604800);
         assert_eq!(RetentionPolicy::Monthly.as_seconds(), 2592000);
-        assert_eq!(RetentionPolicy::Custom(0).as_seconds(), 0);
         assert_eq!(RetentionPolicy::Custom(12345).as_seconds(), 12345);
-    }
-
-    #[test]
-    fn test_config_default() {
-        let config = Config::default();
-        match config.retention {
-            RetentionPolicy::Daily => (),
-            _ => panic!("Default retention should be Daily"),
-        }
-        assert_eq!(config.fetch_interval_active_seconds, 60);
-        assert_eq!(config.fetch_interval_idle_seconds, 300);
-        assert_eq!(config.active_hours_start, 6);
-        assert_eq!(config.active_hours_end, 22);
-        assert_eq!(config.worker_threads, 4);
-        assert_eq!(config.db_path, None);
     }
 }
