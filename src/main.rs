@@ -9,7 +9,8 @@ use app::{App, AppEvent};
 use config::Config;
 use db::Db;
 use directories::ProjectDirs;
-use std::{error::Error, io, sync::Arc};
+use simplelog::*;
+use std::{error::Error, fs::File, io, sync::Arc};
 
 use crossterm::{
     event::{self, Event as CEvent},
@@ -21,28 +22,39 @@ use tokio::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    // Setup Directories
+    let proj_dirs = ProjectDirs::from("com", "LiveNewsTUI", "LiveNews")
+        .ok_or("Could not determine project directories")?;
+    let data_dir = proj_dirs.data_local_dir();
+    std::fs::create_dir_all(data_dir)?;
+
+    // Setup Logging
+    let log_path = data_dir.join("live_news.log");
+    WriteLogger::init(
+        LevelFilter::Info,
+        ConfigBuilder::new().set_time_format_rfc3339().build(),
+        File::create(log_path)?,
+    )?;
+
+    log::info!("Starting Live News TUI");
+
     // Basic setup
     let config = Config::default();
 
     // Setup DB Path
-    let db_path = if let Some(proj_dirs) = ProjectDirs::from("com", "LiveNewsTUI", "LiveNews") {
-        let db_dir = proj_dirs.data_local_dir();
-        std::fs::create_dir_all(db_dir)?;
-        db_dir.join("news.db")
-    } else {
-        std::path::PathBuf::from("news.db")
-    };
-
+    let db_path = data_dir.join("news.db");
     let db = Arc::new(Db::new(db_path)?);
 
     // Clean up old data in background
     let db_cleanup = Arc::clone(&db);
     let policy = config.retention.clone();
     tokio::spawn(async move {
-        let _ = db_cleanup.cleanup_old_data(&policy);
+        if let Err(e) = db_cleanup.cleanup_old_data(&policy) {
+            log::error!("Initial cleanup failed: {}", e);
+        }
     });
 
-    // Start background fetcher with the full config
+    // Start background fetcher
     let fetch_db = Arc::clone(&db);
     let fetch_config = config.clone();
     tokio::spawn(async move {
@@ -59,7 +71,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Channel for events
     let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
 
-    let tick_rate = Duration::from_millis(200); // 200ms UI tick
+    let tick_rate = Duration::from_millis(200);
 
     let tick_tx = tx.clone();
     tokio::spawn(async move {
@@ -84,7 +96,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     });
 
     let mut app = App::new(db);
-    // Initial fetch
     app.on_tick();
 
     // Main loop
@@ -108,5 +119,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
 
+    log::info!("Live News TUI exited gracefully");
     Ok(())
 }
