@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RetentionPolicy {
     Hourly,
     Daily,
@@ -22,7 +22,7 @@ impl RetentionPolicy {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Config {
     pub retention: RetentionPolicy,
     pub fetch_interval_active_seconds: u64,
@@ -37,12 +37,38 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             retention: RetentionPolicy::Daily,
-            fetch_interval_active_seconds: 60,  // 1 minute during active hours
-            fetch_interval_idle_seconds: 300,   // 5 minutes during idle hours
-            active_hours_start: 6,              // 6 AM
-            active_hours_end: 22,               // 10 PM
-            worker_threads: 4,                  // Max concurrent fetches
+            fetch_interval_active_seconds: 60, // 1 minute during active hours
+            fetch_interval_idle_seconds: 300,  // 5 minutes during idle hours
+            active_hours_start: 6,             // 6 AM
+            active_hours_end: 22,              // 10 PM
+            worker_threads: 4,                 // Max concurrent fetches
             db_path: None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_config_default() {
+        let default_config = Config::default();
+        assert_eq!(default_config.retention, RetentionPolicy::Daily);
+        assert_eq!(default_config.fetch_interval_active_seconds, 60);
+        assert_eq!(default_config.fetch_interval_idle_seconds, 300);
+        assert_eq!(default_config.active_hours_start, 6);
+        assert_eq!(default_config.active_hours_end, 22);
+        assert_eq!(default_config.worker_threads, 4);
+        assert_eq!(default_config.db_path, None);
+    }
+
+    #[test]
+    fn test_retention_policy_as_seconds() {
+        assert_eq!(RetentionPolicy::Hourly.as_seconds(), 3600);
+        assert_eq!(RetentionPolicy::Daily.as_seconds(), 86400);
+        assert_eq!(RetentionPolicy::Weekly.as_seconds(), 604800);
+        assert_eq!(RetentionPolicy::Monthly.as_seconds(), 2592000);
+        assert_eq!(RetentionPolicy::Custom(100).as_seconds(), 100);
     }
 }

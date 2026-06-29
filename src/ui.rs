@@ -1,5 +1,5 @@
 use crate::app::App;
-use chrono::{TimeZone, Utc, Timelike};
+use chrono::{TimeZone, Timelike, Utc};
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
@@ -26,8 +26,16 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     let hour = now.hour();
     let is_active = hour >= 6 && hour < 22; // Hardcoded for UI display consistency with default config
 
-    let mode_str = if is_active { "Active (High Frequency)" } else { "Idle (Low Power)" };
-    let mode_color = if is_active { Color::Green } else { Color::Yellow };
+    let mode_str = if is_active {
+        "Active (High Frequency)"
+    } else {
+        "Idle (Low Power)"
+    };
+    let mode_color = if is_active {
+        Color::Green
+    } else {
+        Color::Yellow
+    };
 
     let header_content = Line::from(vec![
         Span::styled(
@@ -38,11 +46,13 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         ),
         Span::raw(" | "),
         Span::styled(mode_str, Style::default().fg(mode_color)),
-        Span::raw(format!(" | Items: {} | Sources: {}", app.stats.0, app.stats.1)),
+        Span::raw(format!(
+            " | Items: {} | Sources: {}",
+            app.stats.0, app.stats.1
+        )),
     ]);
 
-    let header = Paragraph::new(header_content)
-        .block(Block::default().borders(Borders::ALL));
+    let header = Paragraph::new(header_content).block(Block::default().borders(Borders::ALL));
     f.render_widget(header, chunks[0]);
 
     if app.is_reading {
