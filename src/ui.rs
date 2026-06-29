@@ -1,5 +1,5 @@
 use crate::app::App;
-use chrono::{TimeZone, Utc};
+use chrono::{TimeZone, Utc, Timelike};
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
@@ -22,16 +22,27 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         .split(f.area());
 
     // Header
-    let header = Paragraph::new(Line::from(vec![
+    let now = Utc::now();
+    let hour = now.hour();
+    let is_active = hour >= 6 && hour < 22; // Hardcoded for UI display consistency with default config
+
+    let mode_str = if is_active { "Active (High Frequency)" } else { "Idle (Low Power)" };
+    let mode_color = if is_active { Color::Green } else { Color::Yellow };
+
+    let header_content = Line::from(vec![
         Span::styled(
             "LIVE NEWS TUI",
             Style::default()
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
         ),
-        Span::raw(" | A Fast, Free, Terminal News Aggregator"),
-    ]))
-    .block(Block::default().borders(Borders::ALL));
+        Span::raw(" | "),
+        Span::styled(mode_str, Style::default().fg(mode_color)),
+        Span::raw(format!(" | Items: {} | Sources: {}", app.stats.0, app.stats.1)),
+    ]);
+
+    let header = Paragraph::new(header_content)
+        .block(Block::default().borders(Borders::ALL));
     f.render_widget(header, chunks[0]);
 
     if app.is_reading {
@@ -44,7 +55,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     let footer_text = if app.is_reading {
         "Esc/q: Back"
     } else {
-        "q: Quit | ⬆⬇/j k: Navigate News | ⬅➡/h l: Switch Category | Enter: Read"
+        "q: Quit | ⬆⬇/j k: Navigate | ⬅➡/h l: Category | Enter: Read"
     };
     let footer = Paragraph::new(footer_text)
         .block(Block::default().borders(Borders::ALL))
@@ -116,7 +127,6 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect) {
     let news_list =
         List::new(items).block(Block::default().title(feed_title).borders(Borders::ALL));
 
-    // We use liststate to properly scroll if needed
     let mut state = ListState::default();
     state.select(Some(app.selected_item));
     f.render_stateful_widget(news_list, body_chunks[1], &mut state);
@@ -156,7 +166,6 @@ fn draw_reading_view(f: &mut Frame, app: &App, area: Rect) {
     ];
 
     if let Some(desc) = &item.description {
-        // Simple word wrap simulation by splitting newlines for paragraph
         for line in desc.lines() {
             text.push(Line::from(line.to_string()));
         }

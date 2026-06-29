@@ -20,6 +20,12 @@ pub struct NewsItem {
     pub timestamp: i64,
 }
 
+pub struct SourceMeta {
+    pub url: String,
+    pub etag: Option<String>,
+    pub last_modified: Option<String>,
+}
+
 impl Db {
     pub fn new<P: AsRef<Path>>(path: P) -> Result<Self> {
         let conn = Connection::open(path)?;
@@ -33,6 +39,15 @@ impl Db {
                 url TEXT NOT NULL UNIQUE,
                 description TEXT,
                 timestamp INTEGER NOT NULL
+            )",
+            [],
+        )?;
+
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS sources_meta (
+                url TEXT PRIMARY KEY,
+                etag TEXT,
+                last_modified TEXT
             )",
             [],
         )?;
@@ -122,6 +137,31 @@ impl Db {
         Ok(items)
     }
 
+    pub fn get_source_meta(&self, url: &str) -> Result<Option<SourceMeta>> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare("SELECT url, etag, last_modified FROM sources_meta WHERE url = ?1")?;
+        let mut rows = stmt.query(params![url])?;
+
+        if let Some(row) = rows.next()? {
+            Ok(Some(SourceMeta {
+                url: row.get(0)?,
+                etag: row.get(1)?,
+                last_modified: row.get(2)?,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn set_source_meta(&self, meta: &SourceMeta) -> Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute(
+            "INSERT OR REPLACE INTO sources_meta (url, etag, last_modified) VALUES (?1, ?2, ?3)",
+            params![meta.url, meta.etag, meta.last_modified],
+        )?;
+        Ok(())
+    }
+
     pub fn cleanup_old_data(&self, policy: &RetentionPolicy) -> Result<usize> {
         let conn = self.conn.lock().unwrap();
         let cutoff = Utc::now().timestamp() - (policy.as_seconds() as i64);
@@ -130,5 +170,19 @@ impl Db {
             info!("Cleaned up {} old records", deleted);
         }
         Ok(deleted)
+    }
+
+    pub fn vacuum(&self) -> Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute("VACUUM", [])?;
+        info!("Database vacuumed");
+        Ok(())
+    }
+
+    pub fn get_stats(&self) -> Result<(usize, usize)> {
+        let conn = self.conn.lock().unwrap();
+        let count: usize = conn.query_row("SELECT COUNT(*) FROM news", [], |r| r.get(0))?;
+        let sources: usize = conn.query_row("SELECT COUNT(DISTINCT source) FROM news", [], |r| r.get(0))?;
+        Ok((count, sources))
     }
 }

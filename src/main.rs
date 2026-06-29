@@ -42,11 +42,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let _ = db_cleanup.cleanup_old_data(&policy);
     });
 
-    // Start background fetcher
+    // Start background fetcher with the full config
     let fetch_db = Arc::clone(&db);
-    let fetch_interval = config.fetch_interval_seconds;
+    let fetch_config = config.clone();
     tokio::spawn(async move {
-        fetcher::start_fetcher(fetch_db, fetch_interval).await;
+        fetcher::start_fetcher(fetch_db, fetch_config).await;
     });
 
     // TUI setup
@@ -73,11 +73,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     tokio::spawn(async move {
         loop {
-            if crossterm::event::poll(Duration::from_millis(100)).unwrap_or(false)
-                && let Ok(CEvent::Key(key)) = event::read()
-                    && tx.send(AppEvent::Input(key)).is_err() {
+            if crossterm::event::poll(Duration::from_millis(100)).unwrap_or(false) {
+                if let Ok(CEvent::Key(key)) = event::read() {
+                    if tx.send(AppEvent::Input(key)).is_err() {
                         break;
                     }
+                }
+            }
         }
     });
 
