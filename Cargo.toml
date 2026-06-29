@@ -13,7 +13,6 @@ html2md = "0.2.15"
 log = "0.4.33"
 ratatui = "0.30.2"
 reqwest = { version = "0.13.4", features = ["rustls", "json"] }
-rand = "0.8.5"
 rusqlite = { version = "0.31.0", features = ["bundled"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"

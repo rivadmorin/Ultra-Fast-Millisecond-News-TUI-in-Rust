@@ -1,6 +1,4 @@
-#![allow(clippy::collapsible_if)]
 mod app;
-mod cleanser;
 mod config;
 mod db;
 mod fetcher;
@@ -26,6 +24,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Load config from file or defaults
     let config = Config::load();
 
+    // Setup DB Path
     let db_path = if let Some(proj_dirs) = ProjectDirs::from("com", "LiveNewsTUI", "LiveNews") {
         let db_dir = proj_dirs.data_local_dir();
         std::fs::create_dir_all(db_dir)?;
@@ -36,26 +35,31 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let db = Arc::new(Db::new(db_path)?);
 
+    // Clean up old data in background
     let db_cleanup = Arc::clone(&db);
     let policy = config.retention.clone();
     tokio::spawn(async move {
         let _ = db_cleanup.cleanup_old_data(&policy);
     });
 
+    // Start background fetcher with the full config
     let fetch_db = Arc::clone(&db);
     let fetch_config = config.clone();
     tokio::spawn(async move {
         fetcher::start_fetcher(fetch_db, fetch_config).await;
     });
 
+    // TUI setup
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
+    // Channel for events
     let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
-    let tick_rate = Duration::from_millis(200);
+
+    let tick_rate = Duration::from_millis(200); // 200ms UI tick
 
     let tick_tx = tx.clone();
     tokio::spawn(async move {
@@ -69,7 +73,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     tokio::spawn(async move {
         loop {
-            if let Ok(true) = crossterm::event::poll(Duration::from_millis(100)) {
+            if crossterm::event::poll(Duration::from_millis(100)).unwrap_or(false) {
                 if let Ok(CEvent::Key(key)) = event::read() {
                     if tx.send(AppEvent::Input(key)).is_err() {
                         break;
@@ -80,8 +84,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     });
 
     let mut app = App::new(db);
+    // Initial fetch
     app.on_tick();
 
+    // Main loop
     loop {
         terminal.draw(|f| ui::draw(f, &mut app))?;
 
@@ -97,6 +103,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
+    // Restore terminal
     disable_raw_mode()?;
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
