@@ -73,12 +73,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     tokio::spawn(async move {
         loop {
-            if crossterm::event::poll(Duration::from_millis(100)).unwrap_or(false) {
-                if let Ok(CEvent::Key(key)) = event::read() {
-                    if tx.send(AppEvent::Input(key)).is_err() {
-                        break;
-                    }
-                }
+            if crossterm::event::poll(Duration::from_millis(100)).unwrap_or(false)
+                && let Ok(CEvent::Key(key)) = event::read()
+                && tx.send(AppEvent::Input(key)).is_err()
+            {
+                break;
             }
         }
     });
