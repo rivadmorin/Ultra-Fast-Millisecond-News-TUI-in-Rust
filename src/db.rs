@@ -11,7 +11,6 @@ pub struct Db {
 
 #[derive(Debug, Clone)]
 pub struct NewsItem {
-    pub id: Option<i64>,
     pub title: String,
     pub source: String,
     pub category: String,
@@ -101,7 +100,7 @@ impl Db {
         let conn = self.conn.lock().unwrap();
 
         let mut query = String::from(
-            "SELECT id, title, source, category, url, description, timestamp FROM news",
+            "SELECT title, source, category, url, description, timestamp FROM news",
         );
         if category.is_some() {
             query.push_str(" WHERE category = ?1");
@@ -124,13 +123,12 @@ impl Db {
         let mut items = Vec::new();
         while let Some(row) = rows.next()? {
             items.push(NewsItem {
-                id: Some(row.get(0)?),
-                title: row.get(1)?,
-                source: row.get(2)?,
-                category: row.get(3)?,
-                url: row.get(4)?,
-                description: row.get(5)?,
-                timestamp: row.get(6)?,
+                title: row.get(0)?,
+                source: row.get(1)?,
+                category: row.get(2)?,
+                url: row.get(3)?,
+                description: row.get(4)?,
+                timestamp: row.get(5)?,
             });
         }
 
