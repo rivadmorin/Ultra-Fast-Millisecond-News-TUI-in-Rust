@@ -1,12 +1,14 @@
 use crate::config::RetentionPolicy;
-use chrono::Utc;
+use chrono::{TimeZone, Utc};
 use log::info;
 use rusqlite::{Connection, Result, params};
 use std::path::Path;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 pub struct Db {
     conn: Arc<Mutex<Connection>>,
+    change_counter: Arc<AtomicU64>,
 }
 
 #[derive(Debug, Clone)]
@@ -17,6 +19,8 @@ pub struct NewsItem {
     pub url: String,
     pub description: Option<String>,
     pub timestamp: i64,
+    pub formatted_time: String,
+    pub formatted_source: String,
 }
 
 pub struct SourceMeta {
@@ -65,7 +69,16 @@ impl Db {
 
         Ok(Db {
             conn: Arc::new(Mutex::new(conn)),
+            change_counter: Arc::new(AtomicU64::new(1)), // Start at 1
         })
+    }
+
+    pub fn get_change_count(&self) -> u64 {
+        self.change_counter.load(Ordering::Relaxed)
+    }
+
+    fn increment_change_counter(&self) {
+        self.change_counter.fetch_add(1, Ordering::SeqCst);
     }
 
     pub fn insert_items(&self, items: &[NewsItem]) -> Result<usize> {
@@ -93,15 +106,17 @@ impl Db {
         }
 
         tx.commit()?;
+        if count > 0 {
+            self.increment_change_counter();
+        }
         Ok(count)
     }
 
     pub fn get_latest_items(&self, limit: usize, category: Option<&str>) -> Result<Vec<NewsItem>> {
         let conn = self.conn.lock().unwrap();
 
-        let mut query = String::from(
-            "SELECT title, source, category, url, description, timestamp FROM news",
-        );
+        let mut query =
+            String::from("SELECT title, source, category, url, description, timestamp FROM news");
         if category.is_some() {
             query.push_str(" WHERE category = ?1");
         }
@@ -122,13 +137,26 @@ impl Db {
 
         let mut items = Vec::new();
         while let Some(row) = rows.next()? {
+            let timestamp: i64 = row.get(5)?;
+            let source: String = row.get(1)?;
+
+            // Pre-format time and source
+            let datetime = Utc
+                .timestamp_opt(timestamp, 0)
+                .latest()
+                .unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap());
+            let formatted_time = datetime.format("%H:%M").to_string();
+            let formatted_source = format!("[{}]", source);
+
             items.push(NewsItem {
                 title: row.get(0)?,
-                source: row.get(1)?,
+                source,
                 category: row.get(2)?,
                 url: row.get(3)?,
                 description: row.get(4)?,
-                timestamp: row.get(5)?,
+                timestamp,
+                formatted_time,
+                formatted_source,
             });
         }
 
@@ -167,6 +195,7 @@ impl Db {
         let deleted = conn.execute("DELETE FROM news WHERE timestamp < ?1", params![cutoff])?;
         if deleted > 0 {
             info!("Cleaned up {} old records", deleted);
+            self.increment_change_counter();
         }
         Ok(deleted)
     }

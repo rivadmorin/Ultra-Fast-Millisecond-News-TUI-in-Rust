@@ -21,8 +21,8 @@ use tokio::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // Basic setup
-    let config = Config::default();
+    // Load config from file or defaults
+    let config = Config::load();
 
     // Setup DB Path
     let db_path = if let Some(proj_dirs) = ProjectDirs::from("com", "LiveNewsTUI", "LiveNews") {
