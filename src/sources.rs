@@ -116,3 +116,71 @@ pub fn get_categories() -> Vec<&'static str> {
         "Entertainment",
     ]
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashSet;
+
+    #[test]
+    fn test_get_sources_not_empty() {
+        let sources = get_sources();
+        assert!(!sources.is_empty(), "Sources list should not be empty");
+    }
+
+    #[test]
+    fn test_get_sources_unique_urls() {
+        let sources = get_sources();
+        let mut urls = HashSet::new();
+        for source in &sources {
+            assert!(urls.insert(source.url), "Duplicate URL found: {}", source.url);
+        }
+    }
+
+    #[test]
+    fn test_get_sources_valid_url_format() {
+        let sources = get_sources();
+        for source in &sources {
+            assert!(
+                source.url.starts_with("http://") || source.url.starts_with("https://"),
+                "URL should start with http:// or https://: {}",
+                source.url
+            );
+        }
+    }
+
+    #[test]
+    fn test_get_sources_categories_valid() {
+        let sources = get_sources();
+        let categories = get_categories();
+        for source in &sources {
+            assert!(
+                categories.contains(&source.category),
+                "Category '{}' for source '{}' not found in get_categories()",
+                source.category,
+                source.source_name
+            );
+        }
+    }
+
+    #[test]
+    fn test_get_categories_all_present() {
+        let categories = get_categories();
+        assert!(categories.contains(&"All"));
+        assert!(categories.contains(&"Tech"));
+        assert!(categories.contains(&"AI"));
+        assert!(categories.contains(&"World News"));
+        assert!(categories.contains(&"Indonesia"));
+        assert!(categories.contains(&"Business"));
+        assert!(categories.contains(&"Entertainment"));
+    }
+
+    #[test]
+    fn test_get_categories_unique() {
+        let categories = get_categories();
+        let mut set = HashSet::new();
+        for cat in categories {
+            assert!(set.insert(cat), "Duplicate category found: {}", cat);
+        }
+    }
+}
