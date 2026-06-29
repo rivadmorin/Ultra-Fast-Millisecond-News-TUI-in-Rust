@@ -1,4 +1,3 @@
-#![allow(clippy::collapsible_if)]
 use crate::cleanser;
 use crate::config::Config;
 use crate::db::{Db, NewsItem, SourceMeta};
