@@ -190,7 +190,7 @@ fn draw_reading_view(f: &mut Frame, app: &App, area: Rect) {
         Line::from(""),
     ];
 
-    if let Some(desc) = &item.description {
+    if let Some(desc) = &item.content_summary {
         for line in desc.lines() {
             text.push(Line::from(line.to_string()));
         }
