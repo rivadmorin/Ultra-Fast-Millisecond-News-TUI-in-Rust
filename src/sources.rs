@@ -6,7 +6,7 @@ pub struct FeedSource {
 
 pub fn get_sources() -> Vec<FeedSource> {
     vec![
-        // Tech
+        // Tech & AI
         FeedSource {
             url: "https://news.ycombinator.com/rss",
             category: "Tech",
@@ -23,17 +23,6 @@ pub fn get_sources() -> Vec<FeedSource> {
             source_name: "The Verge",
         },
         FeedSource {
-            url: "https://wired.com/feed/rss",
-            category: "Tech",
-            source_name: "Wired",
-        },
-        FeedSource {
-            url: "https://feeds.arstechnica.com/arstechnica/index",
-            category: "Tech",
-            source_name: "Ars Technica",
-        },
-        // AI
-        FeedSource {
             url: "https://openai.com/blog/rss.xml",
             category: "AI",
             source_name: "OpenAI",
@@ -43,33 +32,80 @@ pub fn get_sources() -> Vec<FeedSource> {
             category: "AI",
             source_name: "DeepMind",
         },
+        // Finance & Business
         FeedSource {
-            url: "https://towardsdatascience.com/feed",
-            category: "AI",
-            source_name: "Towards Data Science",
+            url: "https://www.ft.com/?format=rss",
+            category: "Finance",
+            source_name: "Financial Times",
         },
-        // World News
+        FeedSource {
+            url: "https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml",
+            category: "Finance",
+            source_name: "WSJ Business",
+        },
+        FeedSource {
+            url: "https://www.cnbc.com/id/10000664/device/rss/rss.html",
+            category: "Finance",
+            source_name: "CNBC Finance",
+        },
+        FeedSource {
+            url: "http://feeds.bloomberg.com/markets/news.rss",
+            category: "Finance",
+            source_name: "Bloomberg",
+        },
+        FeedSource {
+            url: "https://www.economist.com/finance-and-economics/rss.xml",
+            category: "Finance",
+            source_name: "The Economist",
+        },
+        // Geopolitics & World
         FeedSource {
             url: "http://feeds.bbci.co.uk/news/rss.xml",
-            category: "World News",
+            category: "World",
             source_name: "BBC News",
         },
         FeedSource {
             url: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
-            category: "World News",
-            source_name: "NYT",
-        },
-        FeedSource {
-            url: "https://www.theguardian.com/world/rss",
-            category: "World News",
-            source_name: "The Guardian",
+            category: "World",
+            source_name: "NYT World",
         },
         FeedSource {
             url: "https://www.aljazeera.com/xml/rss/all.xml",
-            category: "World News",
+            category: "World",
             source_name: "Al Jazeera",
         },
-        // Indonesia (Added for completeness based on user language)
+        FeedSource {
+            url: "https://www.theguardian.com/world/rss",
+            category: "World",
+            source_name: "The Guardian",
+        },
+        FeedSource {
+            url: "https://www.reutersagency.com/feed/?best-types=political-news&post_type=best",
+            category: "World",
+            source_name: "Reuters Politics",
+        },
+        // Lifestyle & Culture
+        FeedSource {
+            url: "https://www.vogue.com/feed/rss",
+            category: "Lifestyle",
+            source_name: "Vogue",
+        },
+        FeedSource {
+            url: "https://www.gq.com/feed/rss",
+            category: "Lifestyle",
+            source_name: "GQ",
+        },
+        FeedSource {
+            url: "https://www.nationalgeographic.com/rss/index.xml",
+            category: "Lifestyle",
+            source_name: "NatGeo",
+        },
+        FeedSource {
+            url: "https://www.rollingstone.com/feed/",
+            category: "Lifestyle",
+            source_name: "Rolling Stone",
+        },
+        // Indonesia
         FeedSource {
             url: "https://www.antaranews.com/rss/terpopuler.xml",
             category: "Indonesia",
@@ -85,22 +121,10 @@ pub fn get_sources() -> Vec<FeedSource> {
             category: "Indonesia",
             source_name: "Kompas",
         },
-        // Business
         FeedSource {
-            url: "https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml",
-            category: "Business",
-            source_name: "WSJ",
-        },
-        FeedSource {
-            url: "http://feeds.bloomberg.com/markets/news.rss",
-            category: "Business",
-            source_name: "Bloomberg",
-        },
-        // Entertainment
-        FeedSource {
-            url: "https://www.ign.com/rss/articles/feed",
-            category: "Entertainment",
-            source_name: "IGN",
+            url: "https://www.cnnindonesia.com/ekonomi/rss",
+            category: "Indonesia",
+            source_name: "CNN ID Ekonomi",
         },
     ]
 }
@@ -109,10 +133,10 @@ pub fn get_categories() -> Vec<&'static str> {
     vec![
         "All",
         "Indonesia",
+        "World",
+        "Finance",
         "Tech",
         "AI",
-        "World News",
-        "Business",
-        "Entertainment",
+        "Lifestyle",
     ]
 }

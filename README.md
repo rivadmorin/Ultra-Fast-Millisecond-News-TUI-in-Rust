@@ -2,14 +2,19 @@
 
 Live News TUI adalah aplikasi Terminal User Interface (TUI) berbasis Rust yang menyediakan feed berita real-time secara gratis, cepat, dan efisien. Terinspirasi dari estetika **GitUI**, aplikasi ini menawarkan pengalaman navigasi keyboard-only yang responsif.
 
-## ✨ Fitur Utama
+## ✨ Fitur Unggulan
 
-- **Estetika GitUI**: Layout modern dengan border bulat dan skema warna yang konsisten.
-- **Color Themes**: Pilihan tema warna (Black, White, DeepBlue, Matrix) yang dapat diubah secara instan.
+- **Estetika GitUI**: Layout modern dengan border bulat dan skema warna yang profesional.
+- **Berbagai Kategori Berita**:
+  - **Finansial**: Bloomberg, WSJ, CNBC, Financial Times.
+  - **Geopolitik & Dunia**: BBC, NYT, Al Jazeera, Reuters, The Guardian.
+  - **Teknologi & AI**: Hacker News, TechCrunch, OpenAI, DeepMind.
+  - **Gaya Hidup**: Vogue, GQ, Rolling Stone, National Geographic.
+  - **Indonesia**: Detik, Kompas, Antara, CNN Indonesia.
+- **Refresh Countdown**: Indikator hitung mundur di header untuk mengetahui kapan berita berikutnya akan diambil.
+- **Color Themes**: Pilihan tema warna (Black, White, DeepBlue, Matrix) yang dapat diubah secara instan dengan tombol `t`.
 - **Search & Filter**: Cari berita secara real-time dengan menekan `/`.
-- **Real-Time Feed**: Update berita otomatis di latar belakang menggunakan SQLite asinkron.
-- **Production-Ready**: Manajemen retensi data otomatis dan konfigurasi TOML.
-- **Hemat Sumber Daya**: Penggunaan CPU dan RAM minimal berkat Rust & Tokio.
+- **Production-Ready**: SQLite asinkron, manajemen retensi data otomatis, dan konfigurasi TOML.
 
 ## 🏛️ Arsitektur Sistem
 
@@ -34,44 +39,12 @@ graph TD
     end
 
     H[RSS/Atom Sources] -->|Fetch| E
-    E -->|Write| F
+    E -->|Update Sync| F
     F -->|Read| B
     B -->|Render| A
     C -->|Update| B
     G -->|Load| B
     D -->|Style| A
-```
-
-### Visual ASCII Architecture
-
-```text
-+-----------------------------------------------------------+
-|                      LIVE NEWS TUI (UI)                   |
-|  +-----------------------+   +-------------------------+  |
-|  |   Category Sidebar    |   |     News Feed List      |  |
-|  +-----------------------+   +-------------------------+  |
-|             |                             ^               |
-|             v                             |               |
-+-----------------------------------------------------------+
-|                    App State Manager                      |
-|  (State, Theme, Search, ViewMode: Main/Reading/Popup)     |
-+-------------+-----------------------+---------------------+
-              |                       ^
-              v                       |
-+---------------------------+   +---------------------------+
-|      Config (TOML)        |   |      Database (SQLite)    |
-+---------------------------+   +-------------+-------------+
-                                              ^
-                                              |
-                                +-------------+-------------+
-                                |    Background Fetcher     |
-                                |  (Async Tasks via Tokio)  |
-                                +-------------+-------------+
-                                              |
-                                              v
-                                +---------------------------+
-                                |   External News Sources   |
-                                +---------------------------+
 ```
 
 ## 🛠️ Manajemen Aplikasi
@@ -94,9 +67,9 @@ graph TD
 - **Enter** : Baca detail artikel.
 - **Esc / q** : Kembali atau Keluar.
 - **h / l** : Ganti kategori.
-- **j / k** : Navigasi daftar.
+- **j / k** : Navigasi daftar berita.
 - **?** : Tampilkan bantuan.
 
 ## 📄 Lisensi
 
-Sepenuhnya gratis untuk digunakan.
+Sepenuhnya gratis untuk digunakan selamanya.

@@ -3,12 +3,13 @@ use chrono::{TimeZone, Utc};
 use log::info;
 use rusqlite::{Connection, Result, params};
 use std::path::Path;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 pub struct Db {
     conn: Arc<Mutex<Connection>>,
     change_counter: Arc<AtomicU64>,
+    pub next_fetch_timestamp: Arc<AtomicI64>,
 }
 
 #[derive(Debug, Clone)]
@@ -70,6 +71,7 @@ impl Db {
         Ok(Db {
             conn: Arc::new(Mutex::new(conn)),
             change_counter: Arc::new(AtomicU64::new(1)), // Start at 1
+            next_fetch_timestamp: Arc::new(AtomicI64::new(0)),
         })
     }
 

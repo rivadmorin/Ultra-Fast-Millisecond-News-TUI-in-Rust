@@ -207,6 +207,13 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect, colors: &ThemeColors) {
         ),
         Span::raw(" | "),
         Span::styled(
+            format!("Refresh: {}s", app.refresh_countdown),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::raw(" | "),
+        Span::styled(
             format!("Theme: {:?}", app.theme),
             Style::default().fg(colors.cyan),
         ),

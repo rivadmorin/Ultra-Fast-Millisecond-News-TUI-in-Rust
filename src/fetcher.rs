@@ -6,6 +6,7 @@ use log::{error, info, warn};
 use reqwest::Client;
 use reqwest::header::{ETAG, IF_MODIFIED_SINCE, IF_NONE_MATCH, LAST_MODIFIED};
 use std::sync::Arc;
+use std::sync::atomic::Ordering;
 use tokio::sync::Semaphore;
 use tokio::time::{Duration, sleep};
 
@@ -45,6 +46,9 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
         } else {
             config.fetch_interval_idle_seconds
         };
+
+        db.next_fetch_timestamp
+            .store(now.timestamp() + interval_secs as i64, Ordering::Relaxed);
 
         info!(
             "Starting fetch cycle for {} sources (Mode: {})",
