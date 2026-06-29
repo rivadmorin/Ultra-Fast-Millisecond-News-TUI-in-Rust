@@ -137,7 +137,8 @@ impl Db {
 
     pub fn get_source_meta(&self, url: &str) -> Result<Option<SourceMeta>> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt = conn.prepare("SELECT url, etag, last_modified FROM sources_meta WHERE url = ?1")?;
+        let mut stmt =
+            conn.prepare("SELECT url, etag, last_modified FROM sources_meta WHERE url = ?1")?;
         let mut rows = stmt.query(params![url])?;
 
         if let Some(row) = rows.next()? {
@@ -180,7 +181,8 @@ impl Db {
     pub fn get_stats(&self) -> Result<(usize, usize)> {
         let conn = self.conn.lock().unwrap();
         let count: usize = conn.query_row("SELECT COUNT(*) FROM news", [], |r| r.get(0))?;
-        let sources: usize = conn.query_row("SELECT COUNT(DISTINCT source) FROM news", [], |r| r.get(0))?;
+        let sources: usize =
+            conn.query_row("SELECT COUNT(DISTINCT source) FROM news", [], |r| r.get(0))?;
         Ok((count, sources))
     }
 }
