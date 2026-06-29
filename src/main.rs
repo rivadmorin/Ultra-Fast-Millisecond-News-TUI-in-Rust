@@ -83,7 +83,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    let mut app = App::new(db);
+    let mut app = App::new(db, config.theme);
     // Initial fetch
     app.on_tick();
 
