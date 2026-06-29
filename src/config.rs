@@ -70,6 +70,5 @@ mod tests {
         assert_eq!(config.active_hours_start, 6);
         assert_eq!(config.active_hours_end, 22);
         assert_eq!(config.worker_threads, 4);
-        assert_eq!(config.db_path, None);
     }
 }

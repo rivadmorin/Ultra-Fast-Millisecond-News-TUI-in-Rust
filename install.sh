@@ -1,60 +1,61 @@
 #!/usr/bin/env bash
 
+# Live News TUI Manager script
+# Supports: install, uninstall, update
+
 set -e
 
-echo "======================================"
-echo "    Live News TUI Installer "
-echo "======================================"
+APP_NAME="live_news_tui"
+INSTALL_DIR="$HOME/.local/bin"
 
-# Determine OS
-OS="$(uname -s)"
-echo "Detected OS: $OS"
+show_help() {
+    echo "Usage: ./install.sh [install|uninstall|update]"
+}
 
-# Check dependencies
-dependencies=("curl" "git" "pkg-config")
-if [[ "$OS" == "Linux" ]]; then
-    dependencies+=("libssl-dev")
-fi
+install_app() {
+    echo "Checking dependencies..."
+    OS="$(uname -s)"
 
-echo "Checking system dependencies..."
-for dep in "${dependencies[@]}"; do
-    if ! command -v "$dep" &> /dev/null && [[ "$OS" == "Linux" ]]; then
-        echo "Missing dependency: $dep. Attempting to install..."
-        sudo apt-get update && sudo apt-get install -y "$dep" || echo "Please install $dep manually."
+    # Minimal dependency check
+    if ! command -v cargo &> /dev/null; then
+        echo "Rust is required. Please install it from https://rustup.rs"
+        return 1
     fi
-done
 
-# Check if cargo is installed
-if ! command -v cargo &> /dev/null; then
-    echo "Rust/Cargo is not installed. Installing Rust..."
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    source "$HOME/.cargo/env"
-fi
+    echo "Building $APP_NAME..."
+    cargo build --release
 
-echo "Compiling Live News TUI in release mode..."
-cargo build --release
+    echo "Installing to $INSTALL_DIR..."
+    mkdir -p "$INSTALL_DIR"
+    cp target/release/$APP_NAME "$INSTALL_DIR/"
 
-BIN_DIR="$HOME/.local/bin"
-mkdir -p "$BIN_DIR"
+    if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+        echo "Warning: $INSTALL_DIR is not in your PATH."
+    fi
 
-echo "Installing binary to $BIN_DIR/live_news_tui"
-cp target/release/live_news_tui "$BIN_DIR/"
+    echo "Done."
+}
 
-# Add to PATH if not already there
-if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
-    SHELL_RC=""
-    if [[ "$SHELL" == *"zsh"* ]]; then
-        SHELL_RC="$HOME/.zshrc"
+uninstall_app() {
+    echo "Removing $APP_NAME..."
+    rm -f "$INSTALL_DIR/$APP_NAME"
+    echo "Done."
+}
+
+update_app() {
+    echo "Updating..."
+    if [ -d ".git" ]; then
+        # Use a safe way to pull or just tell the user
+        echo "Please run 'git pull' first, then './install.sh install'"
     else
-        SHELL_RC="$HOME/.bashrc"
+        echo "Not a git repository."
     fi
+}
 
-    echo "Adding $BIN_DIR to PATH in $SHELL_RC"
-    echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$SHELL_RC"
-    echo "Please restart your terminal or run: source $SHELL_RC"
-fi
-
-echo "======================================"
-echo "Installation complete!"
-echo "Run 'live_news_tui' to start."
-echo "======================================"
+case "$1" in
+    install) install_app ;;
+    uninstall) uninstall_app ;;
+    update) update_app ;;
+    help|--help|-h) show_help ;;
+    *) install_app ;;
+esac

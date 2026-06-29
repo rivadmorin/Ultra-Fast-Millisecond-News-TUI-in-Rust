@@ -1,7 +1,7 @@
 use crate::config::Config;
 use crate::db::{Db, NewsItem, SourceMeta};
 use crate::sources::get_sources;
-use chrono::{Datelike, Timelike, Utc};
+use chrono::{Datelike, TimeZone, Timelike, Utc};
 use log::{error, info, warn};
 use reqwest::Client;
 use reqwest::header::{ETAG, IF_MODIFIED_SINCE, IF_NONE_MATCH, LAST_MODIFIED};
@@ -101,54 +101,61 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
                             .get(LAST_MODIFIED)
                             .and_then(|v| v.to_str().ok().map(|s| s.to_string()));
 
-                        if let Ok(bytes) = res.bytes().await {
-                            if let Ok(feed) = feed_rs::parser::parse(bytes.as_ref()) {
-                                let mut items = Vec::new();
-                                for entry in feed.entries {
-                                    let title = entry
-                                        .title
-                                        .map(|t| t.content)
-                                        .unwrap_or_else(|| "No Title".to_string());
-                                    let item_url = entry
-                                        .links
-                                        .first()
-                                        .map(|l| l.href.clone())
-                                        .unwrap_or_default();
-                                    let description =
-                                        entry.summary.map(|s| html2md::parse_html(&s.content));
-                                    let timestamp = entry
-                                        .published
-                                        .map(|d| d.timestamp())
-                                        .unwrap_or_else(|| Utc::now().timestamp());
+                        if let Ok(bytes) = res.bytes().await
+                            && let Ok(feed) = feed_rs::parser::parse(bytes.as_ref())
+                        {
+                            let mut items = Vec::new();
+                            for entry in feed.entries {
+                                let title = entry
+                                    .title
+                                    .map(|t| t.content)
+                                    .unwrap_or_else(|| "No Title".to_string());
+                                let item_url = entry
+                                    .links
+                                    .first()
+                                    .map(|l| l.href.clone())
+                                    .unwrap_or_default();
+                                let description =
+                                    entry.summary.map(|s| html2md::parse_html(&s.content));
+                                let timestamp = entry
+                                    .published
+                                    .map(|d| d.timestamp())
+                                    .unwrap_or_else(|| Utc::now().timestamp());
 
-                                    if !item_url.is_empty() {
-                                        items.push(NewsItem {
-                                            title,
-                                            source: source_name.clone(),
-                                            category: category.clone(),
-                                            url: item_url,
-                                            description,
-                                            timestamp,
-                                        });
-                                    }
+                                if !item_url.is_empty() {
+                                    let datetime = Utc
+                                        .timestamp_opt(timestamp, 0)
+                                        .latest()
+                                        .unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap())
+                                        .naive_local();
+                                    let formatted_time = datetime.format("%H:%M:%S").to_string();
+                                    let formatted_source = format!("[{}]", source_name);
+
+                                    items.push(NewsItem {
+                                        title,
+                                        source: source_name.clone(),
+                                        category: category.clone(),
+                                        url: item_url,
+                                        description,
+                                        timestamp,
+                                        formatted_time,
+                                        formatted_source,
+                                    });
                                 }
-
-                                if !items.is_empty() {
-                                    if let Err(e) = db.insert_items(&items) {
-                                        error!(
-                                            "Failed to insert items from {}: {}",
-                                            source_name, e
-                                        );
-                                    }
-                                }
-
-                                // Update metadata even if no new items were inserted (but feed was fetched successfully)
-                                let _ = db.set_source_meta(&SourceMeta {
-                                    url: url.clone(),
-                                    etag: new_etag,
-                                    last_modified: new_lm,
-                                });
                             }
+
+                            if !items.is_empty()
+                                && let Err(e) = db.insert_items(&items)
+                            {
+                                error!("Failed to insert items from {}: {}", source_name, e);
+                            }
+
+                            // Update metadata even if no new items were inserted (but feed was fetched successfully)
+                            let _ = db.set_source_meta(&SourceMeta {
+                                url: url.clone(),
+                                etag: new_etag,
+                                last_modified: new_lm,
+                            });
                         }
                     }
                     Err(e) => {
