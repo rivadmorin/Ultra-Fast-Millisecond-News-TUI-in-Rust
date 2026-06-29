@@ -116,3 +116,57 @@ pub fn get_categories() -> Vec<&'static str> {
         "Entertainment",
     ]
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashSet;
+
+    #[test]
+    fn test_get_categories_basic() {
+        let categories = get_categories();
+        assert_eq!(categories.len(), 7);
+        assert!(categories.contains(&"All"));
+        assert!(categories.contains(&"Tech"));
+        assert!(categories.contains(&"AI"));
+        assert!(categories.contains(&"World News"));
+        assert!(categories.contains(&"Business"));
+        assert!(categories.contains(&"Indonesia"));
+        assert!(categories.contains(&"Entertainment"));
+    }
+
+    #[test]
+    fn test_get_categories_contains_all_sources() {
+        let categories = get_categories();
+        let sources = get_sources();
+
+        for source in sources {
+            assert!(
+                categories.contains(&source.category),
+                "Category '{}' from source '{}' not found in get_categories()",
+                source.category,
+                source.source_name
+            );
+        }
+    }
+
+    #[test]
+    fn test_get_categories_uniqueness() {
+        let categories = get_categories();
+        let mut set = HashSet::new();
+        for category in &categories {
+            assert!(
+                set.insert(category),
+                "Duplicate category found: {}",
+                category
+            );
+        }
+    }
+
+    #[test]
+    fn test_get_categories_starts_with_all() {
+        let categories = get_categories();
+        assert!(!categories.is_empty());
+        assert_eq!(categories[0], "All");
+    }
+}

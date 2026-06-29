@@ -1,10 +1,11 @@
+#![allow(clippy::collapsible_if)]
 use crate::config::Config;
 use crate::db::{Db, NewsItem, SourceMeta};
 use crate::sources::get_sources;
 use chrono::{Datelike, Timelike, Utc};
 use log::{error, info, warn};
 use reqwest::Client;
-use reqwest::header::{IF_MODIFIED_SINCE, IF_NONE_MATCH, ETAG, LAST_MODIFIED};
+use reqwest::header::{ETAG, IF_MODIFIED_SINCE, IF_NONE_MATCH, LAST_MODIFIED};
 use std::sync::Arc;
 use tokio::sync::Semaphore;
 use tokio::time::{Duration, sleep};
@@ -92,17 +93,34 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
                         }
 
                         // Capture new headers for next time
-                        let new_etag = res.headers().get(ETAG).and_then(|v| v.to_str().ok().map(|s| s.to_string()));
-                        let new_lm = res.headers().get(LAST_MODIFIED).and_then(|v| v.to_str().ok().map(|s| s.to_string()));
+                        let new_etag = res
+                            .headers()
+                            .get(ETAG)
+                            .and_then(|v| v.to_str().ok().map(|s| s.to_string()));
+                        let new_lm = res
+                            .headers()
+                            .get(LAST_MODIFIED)
+                            .and_then(|v| v.to_str().ok().map(|s| s.to_string()));
 
                         if let Ok(bytes) = res.bytes().await {
                             if let Ok(feed) = feed_rs::parser::parse(bytes.as_ref()) {
                                 let mut items = Vec::new();
                                 for entry in feed.entries {
-                                    let title = entry.title.map(|t| t.content).unwrap_or_else(|| "No Title".to_string());
-                                    let item_url = entry.links.first().map(|l| l.href.clone()).unwrap_or_default();
-                                    let description = entry.summary.map(|s| html2md::parse_html(&s.content));
-                                    let timestamp = entry.published.map(|d| d.timestamp()).unwrap_or_else(|| Utc::now().timestamp());
+                                    let title = entry
+                                        .title
+                                        .map(|t| t.content)
+                                        .unwrap_or_else(|| "No Title".to_string());
+                                    let item_url = entry
+                                        .links
+                                        .first()
+                                        .map(|l| l.href.clone())
+                                        .unwrap_or_default();
+                                    let description =
+                                        entry.summary.map(|s| html2md::parse_html(&s.content));
+                                    let timestamp = entry
+                                        .published
+                                        .map(|d| d.timestamp())
+                                        .unwrap_or_else(|| Utc::now().timestamp());
 
                                     if !item_url.is_empty() {
                                         items.push(NewsItem {
@@ -119,7 +137,10 @@ pub async fn start_fetcher(db: Arc<Db>, config: Config) {
 
                                 if !items.is_empty() {
                                     if let Err(e) = db.insert_items(&items) {
-                                        error!("Failed to insert items from {}: {}", source_name, e);
+                                        error!(
+                                            "Failed to insert items from {}: {}",
+                                            source_name, e
+                                        );
                                     }
                                 }
 

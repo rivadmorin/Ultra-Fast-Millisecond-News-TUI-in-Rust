@@ -79,15 +79,16 @@ impl App {
             }
             KeyCode::Down | KeyCode::Char('j') => {
                 if !self.is_reading
-                    && !self.items.is_empty() && self.selected_item < self.items.len() - 1 {
-                        self.selected_item += 1;
-                    }
+                    && !self.items.is_empty()
+                    && self.selected_item < self.items.len() - 1
+                {
+                    self.selected_item += 1;
+                }
             }
             KeyCode::Up | KeyCode::Char('k') => {
-                if !self.is_reading
-                    && self.selected_item > 0 {
-                        self.selected_item -= 1;
-                    }
+                if !self.is_reading && self.selected_item > 0 {
+                    self.selected_item -= 1;
+                }
             }
             KeyCode::Right | KeyCode::Char('l') => {
                 if !self.is_reading && self.selected_category < self.categories.len() - 1 {
