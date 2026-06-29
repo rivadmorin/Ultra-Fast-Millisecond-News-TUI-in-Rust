@@ -1,58 +1,56 @@
 # Live News TUI 🚀
 
-Live News TUI adalah aplikasi Terminal User Interface (TUI) berbasis Rust yang menyediakan feed berita real-time secara gratis, cepat, dan efisien. Terinspirasi dari estetika **GitUI**, aplikasi ini menawarkan pengalaman navigasi keyboard-only yang responsif.
+Live News TUI adalah aplikasi Terminal User Interface (TUI) berbasis Rust yang menyediakan feed berita real-time secara gratis, cepat, dan efisien. Aplikasi ini mengintegrasikan mesin scraping canggih berbasis Python (**Scrapling**) untuk melewati proteksi anti-bot dan menyediakan data dari berbagai sumber global.
 
 ## ✨ Fitur Unggulan
 
-- **Estetika GitUI**: Layout modern dengan border bulat dan skema warna yang profesional.
+- **Stealthy Fetching**: Menggunakan `Scrapling` (Python) melalui `PyO3` dengan fitur `solve_cloudflare=True` untuk akses berita tanpa hambatan.
 - **Berbagai Kategori Berita**:
-  - **Finansial**: Bloomberg, WSJ, CNBC, Financial Times.
-  - **Geopolitik & Dunia**: BBC, NYT, Al Jazeera, Reuters, The Guardian.
+  - **Finansial**: Bloomberg, WSJ, CNBC, Financial Times, The Economist.
+  - **Geopolitik & Dunia**: Reuters, BBC, NYT, Al Jazeera, The Guardian.
   - **Teknologi & AI**: Hacker News, TechCrunch, OpenAI, DeepMind.
-  - **Gaya Hidup**: Vogue, GQ, Rolling Stone, National Geographic.
+  - **Gaya Hidup**: National Geographic, Vogue, GQ, Rolling Stone.
   - **Indonesia**: Detik, Kompas, Antara, CNN Indonesia.
-- **Refresh Countdown**: Indikator hitung mundur di header untuk mengetahui kapan berita berikutnya akan diambil.
-- **Color Themes**: Pilihan tema warna (Black, White, DeepBlue, Matrix) yang dapat diubah secara instan dengan tombol `t`.
-- **Search & Filter**: Cari berita secara real-time dengan menekan `/`.
-- **Production-Ready**: SQLite asinkron, manajemen retensi data otomatis, dan konfigurasi TOML.
+- **Refresh Countdown**: Indikator hitung mundur real-time di header (Sync Countdown).
+- **GitUI Aesthetic**: Layout modern dengan panel, border bulat, dan navigasi intuitif.
+- **Multi-Theme Engine**: 4 tema warna (Black, White, DeepBlue, Matrix).
+- **Search & Filter**: Pencarian adaptif dengan menekan `/`.
 
 ## 🏛️ Arsitektur Sistem
 
-### Alur Data Visual (Mermaid)
+### Alur Data (Rust + Python Hybrid)
 
 ```mermaid
 graph TD
-    subgraph UI_Layer [User Interface]
-        A[Ratatui Renderer]
-        B[App State Manager]
+    subgraph Rust_Core [Rust Core Engine]
+        A[Ratatui UI]
+        B[App State]
+        C[SQLite DB]
+        D[Tokio Runtime]
     end
 
-    subgraph Logic_Layer [Application Logic]
-        C[Input Handler]
-        D[Theme Engine]
-        E[Background Fetcher]
+    subgraph Python_Bridge [PyO3 Bridge]
+        E[Scrapling Fetcher]
     end
 
-    subgraph Data_Layer [Data Persistence]
-        F[SQLite Database]
-        G[Config TOML]
+    subgraph Data_Flow
+        F[News Sources] -->|Stealthy GET| E
+        E -->|Raw Bytes| D
+        D -->|Parse RSS| C
+        C -->|Change Event| B
+        B -->|Draw| A
     end
 
-    H[RSS/Atom Sources] -->|Fetch| E
-    E -->|Update Sync| F
-    F -->|Read| B
-    B -->|Render| A
-    C -->|Update| B
-    G -->|Load| B
-    D -->|Style| A
+    G[TOML Config] --> B
 ```
 
 ## 🛠️ Manajemen Aplikasi
 
-### 📥 Instalasi
+### 📥 Instalasi (Otomatis)
 ```bash
 ./install.sh
 ```
+*Pastikan Python 3 dan `pip install scrapling` tersedia di sistem Anda.*
 
 ### 🔄 Update & 🗑️ Uninstall
 ```bash
@@ -62,14 +60,13 @@ graph TD
 
 ## ⌨️ Navigasi & Pintasan
 
-- **/** : Buka Pencarian (Search).
-- **t** : Ganti Tema Warna (Black -> White -> DeepBlue -> Matrix).
-- **Enter** : Baca detail artikel.
-- **Esc / q** : Kembali atau Keluar.
+- **/** : Buka Pencarian.
+- **t** : Ganti Tema Warna.
+- **Enter** : Baca detail berita.
+- **Esc / q** : Kembali / Keluar.
 - **h / l** : Ganti kategori.
-- **j / k** : Navigasi daftar berita.
-- **?** : Tampilkan bantuan.
+- **?** : Bantuan.
 
 ## 📄 Lisensi
 
-Sepenuhnya gratis untuk digunakan selamanya.
+Sepenuhnya gratis dan terbuka.

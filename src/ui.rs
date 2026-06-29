@@ -60,7 +60,6 @@ impl ThemeColors {
 pub fn draw(f: &mut Frame, app: &mut App) {
     let colors = ThemeColors::from_theme(app.theme);
 
-    // Draw background
     f.render_widget(
         Block::default().style(Style::default().bg(colors.bg)),
         f.area(),
@@ -97,7 +96,7 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect, colors: &ThemeColors
 
     let content_chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Length(20), Constraint::Min(0)])
+        .constraints([Constraint::Length(16), Constraint::Min(0)])
         .split(main_layout[1]);
 
     // Categories
@@ -153,7 +152,10 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect, colors: &ThemeColors
         .collect();
 
     let feed_title = if app.search_query.is_empty() {
-        format!(" {} - Latest News ", app.categories[app.selected_category])
+        format!(
+            " {} - Stealthy Feed ",
+            app.categories[app.selected_category]
+        )
     } else {
         format!(" Search: '{}' ", app.search_query)
     };
@@ -207,7 +209,7 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect, colors: &ThemeColors) {
         ),
         Span::raw(" | "),
         Span::styled(
-            format!("Refresh: {}s", app.refresh_countdown),
+            format!("Sync: {}s", app.refresh_countdown),
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),
@@ -305,7 +307,7 @@ fn draw_search_popup(f: &mut Frame, app: &App, colors: &ThemeColors) {
     let area = centered_rect(50, 10, f.area());
 
     let block = Block::default()
-        .title(" Search Query ")
+        .title(" Stealthy Search ")
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(colors.cyan))
@@ -324,7 +326,7 @@ fn draw_help_popup(f: &mut Frame, _app: &App, colors: &ThemeColors) {
 
     let text = vec![
         Line::from(Span::styled(
-            "Keyboard Shortcuts",
+            "Stealthy Terminal Shortcuts",
             Style::default()
                 .fg(colors.cyan)
                 .add_modifier(Modifier::BOLD),
@@ -332,35 +334,35 @@ fn draw_help_popup(f: &mut Frame, _app: &App, colors: &ThemeColors) {
         Line::from(""),
         Line::from(vec![
             Span::styled(" [/] ", Style::default().fg(colors.green)),
-            Span::raw(" Search news"),
+            Span::raw(" Adaptive Search"),
         ]),
         Line::from(vec![
             Span::styled(" [t] ", Style::default().fg(colors.green)),
-            Span::raw(" Switch color theme"),
+            Span::raw(" Toggle Theme Engine"),
         ]),
         Line::from(vec![
             Span::styled(" [Enter] ", Style::default().fg(colors.green)),
-            Span::raw(" Read selected article"),
+            Span::raw(" Read Article"),
         ]),
         Line::from(vec![
             Span::styled(" [Esc/q] ", Style::default().fg(colors.green)),
-            Span::raw(" Back / Close popup"),
+            Span::raw(" Close Popup"),
         ]),
         Line::from(vec![
             Span::styled(" [h/l] ", Style::default().fg(colors.green)),
-            Span::raw(" Switch category"),
+            Span::raw(" Switch Categories"),
         ]),
         Line::from(vec![
             Span::styled(" [j/k] ", Style::default().fg(colors.green)),
-            Span::raw(" Navigate list"),
+            Span::raw(" Navigate Feed"),
         ]),
         Line::from(vec![
             Span::styled(" [?] ", Style::default().fg(colors.green)),
-            Span::raw(" Show this help"),
+            Span::raw(" Show Help"),
         ]),
         Line::from(""),
         Line::from(Span::styled(
-            "Press any key to close",
+            "Powered by Rust, SQLite & Scrapling",
             Style::default().fg(colors.gray),
         )),
     ];

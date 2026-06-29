@@ -2,6 +2,7 @@ mod app;
 mod config;
 mod db;
 mod fetcher;
+mod scraper;
 mod sources;
 mod ui;
 
@@ -9,7 +10,7 @@ use app::{App, AppEvent};
 use config::Config;
 use db::Db;
 use directories::ProjectDirs;
-use std::{error::Error, io, sync::Arc};
+use std::{env, error::Error, io, sync::Arc};
 
 use crossterm::{
     event::{self, Event as CEvent},
@@ -21,10 +22,23 @@ use tokio::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // Load config from file or defaults
+    let args: Vec<String> = env::args().collect();
+
+    // Check if we should run the scraper example
+    if args.len() > 1 && args[1] == "--scrape" {
+        let url = if args.len() > 2 {
+            &args[2]
+        } else {
+            "https://techcrunch.com/2024/03/18/nvidia-blackwell-gpu-b200/"
+        };
+        println!("Scraping URL: {}", url);
+        scraper::run_example_scraper(url)?;
+        return Ok(());
+    }
+
+    // Normal TUI logic
     let config = Config::load();
 
-    // Setup DB Path
     let db_path = if let Some(proj_dirs) = ProjectDirs::from("com", "LiveNewsTUI", "LiveNews") {
         let db_dir = proj_dirs.data_local_dir();
         std::fs::create_dir_all(db_dir)?;
@@ -35,31 +49,26 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let db = Arc::new(Db::new(db_path)?);
 
-    // Clean up old data in background
     let db_cleanup = Arc::clone(&db);
     let policy = config.retention.clone();
     tokio::spawn(async move {
         let _ = db_cleanup.cleanup_old_data(&policy);
     });
 
-    // Start background fetcher with the full config
     let fetch_db = Arc::clone(&db);
     let fetch_config = config.clone();
     tokio::spawn(async move {
         fetcher::start_fetcher(fetch_db, fetch_config).await;
     });
 
-    // TUI setup
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    // Channel for events
     let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
-
-    let tick_rate = Duration::from_millis(200); // 200ms UI tick
+    let tick_rate = Duration::from_millis(200);
 
     let tick_tx = tx.clone();
     tokio::spawn(async move {
@@ -84,10 +93,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     });
 
     let mut app = App::new(db, config.theme);
-    // Initial fetch
     app.on_tick();
 
-    // Main loop
     loop {
         terminal.draw(|f| ui::draw(f, &mut app))?;
 
@@ -103,7 +110,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    // Restore terminal
     disable_raw_mode()?;
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
