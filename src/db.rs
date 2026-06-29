@@ -3,12 +3,13 @@ use chrono::{TimeZone, Utc};
 use log::info;
 use rusqlite::{Connection, Result, params};
 use std::path::Path;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU64, AtomicI64, Ordering};
 use std::sync::{Arc, Mutex};
 
 pub struct Db {
     conn: Arc<Mutex<Connection>>,
     change_counter: Arc<AtomicU64>,
+    pub next_fetch_timestamp: Arc<AtomicI64>,
 }
 
 #[derive(Debug, Clone)]
@@ -21,12 +22,6 @@ pub struct NewsItem {
     pub timestamp: i64,
     pub formatted_time: String,
     pub formatted_source: String,
-}
-
-pub struct SourceMeta {
-    pub url: String,
-    pub etag: Option<String>,
-    pub last_modified: Option<String>,
 }
 
 impl Db {
@@ -47,16 +42,6 @@ impl Db {
         )?;
 
         conn.execute(
-            "CREATE TABLE IF NOT EXISTS sources_meta (
-                url TEXT PRIMARY KEY,
-                etag TEXT,
-                last_modified TEXT
-            )",
-            [],
-        )?;
-
-        // Create indexes for faster queries
-        conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_timestamp ON news (timestamp)",
             [],
         )?;
@@ -69,7 +54,8 @@ impl Db {
 
         Ok(Db {
             conn: Arc::new(Mutex::new(conn)),
-            change_counter: Arc::new(AtomicU64::new(1)), // Start at 1
+            change_counter: Arc::new(AtomicU64::new(1)),
+            next_fetch_timestamp: Arc::new(AtomicI64::new(0)),
         })
     }
 
@@ -148,7 +134,6 @@ impl Db {
             let timestamp: i64 = row.get(5)?;
             let source: String = row.get(1)?;
 
-            // Pre-format time and source
             let datetime = Utc
                 .timestamp_opt(timestamp, 0)
                 .latest()
@@ -169,32 +154,6 @@ impl Db {
         }
 
         Ok(items)
-    }
-
-    pub fn get_source_meta(&self, url: &str) -> Result<Option<SourceMeta>> {
-        let conn = self.conn.lock().unwrap();
-        let mut stmt =
-            conn.prepare("SELECT url, etag, last_modified FROM sources_meta WHERE url = ?1")?;
-        let mut rows = stmt.query(params![url])?;
-
-        if let Some(row) = rows.next()? {
-            Ok(Some(SourceMeta {
-                url: row.get(0)?,
-                etag: row.get(1)?,
-                last_modified: row.get(2)?,
-            }))
-        } else {
-            Ok(None)
-        }
-    }
-
-    pub fn set_source_meta(&self, meta: &SourceMeta) -> Result<()> {
-        let conn = self.conn.lock().unwrap();
-        conn.execute(
-            "INSERT OR REPLACE INTO sources_meta (url, etag, last_modified) VALUES (?1, ?2, ?3)",
-            params![meta.url, meta.etag, meta.last_modified],
-        )?;
-        Ok(())
     }
 
     pub fn cleanup_old_data(&self, policy: &RetentionPolicy) -> Result<usize> {

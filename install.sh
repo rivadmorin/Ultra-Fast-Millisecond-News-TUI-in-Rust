@@ -13,7 +13,7 @@ echo "Detected OS: $OS"
 # Check dependencies
 dependencies=("curl" "git" "pkg-config")
 if [[ "$OS" == "Linux" ]]; then
-    dependencies+=("libssl-dev")
+    dependencies+=("libssl-dev" "python3-pip")
 fi
 
 echo "Checking system dependencies..."
@@ -30,6 +30,10 @@ if ! command -v cargo &> /dev/null; then
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     source "$HOME/.cargo/env"
 fi
+
+# Install Python requirements
+echo "Installing Python dependencies (scrapling)..."
+pip3 install scrapling --break-system-packages || pip3 install scrapling
 
 echo "Compiling Live News TUI in release mode..."
 cargo build --release
@@ -50,7 +54,7 @@ if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
     fi
 
     echo "Adding $BIN_DIR to PATH in $SHELL_RC"
-    echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$SHELL_RC"
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_RC"
     echo "Please restart your terminal or run: source $SHELL_RC"
 fi
 

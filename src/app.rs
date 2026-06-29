@@ -2,6 +2,7 @@ use crate::config::Theme;
 use crate::db::{Db, NewsItem};
 use crate::sources::get_categories;
 use std::sync::Arc;
+use std::sync::atomic::Ordering;
 
 pub enum AppEvent {
     Tick,
@@ -27,6 +28,7 @@ pub struct App {
     pub is_showing_help: bool,
     pub search_query: String,
     pub theme: Theme,
+    pub refresh_countdown: i64,
     last_db_change: u64,
 }
 
@@ -46,12 +48,19 @@ impl App {
             is_showing_help: false,
             search_query: String::new(),
             theme,
+            refresh_countdown: 0,
             last_db_change: 0,
         }
     }
 
     pub fn on_tick(&mut self) {
         let current_change = self.db.get_change_count();
+
+        // Update countdown
+        let now = chrono::Utc::now().timestamp();
+        let next = self.db.next_fetch_timestamp.load(Ordering::Relaxed);
+        self.refresh_countdown = (next - now).max(0);
+
         if self.is_searching || current_change > self.last_db_change {
             self.fetch_items_from_db();
             if let Ok(stats) = self.db.get_stats() {

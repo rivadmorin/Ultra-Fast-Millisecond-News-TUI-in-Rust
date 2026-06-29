@@ -8,7 +8,7 @@ pub enum RetentionPolicy {
     Daily,
     Weekly,
     Monthly,
-    Custom(u64), // In seconds
+    Custom(u64),
 }
 
 impl RetentionPolicy {
@@ -57,6 +57,7 @@ impl Default for Config {
 }
 
 impl Config {
+    #[allow(clippy::collapsible_if)]
     pub fn load() -> Self {
         if let Some(proj_dirs) = ProjectDirs::from("com", "LiveNewsTUI", "LiveNews") {
             let config_dir = proj_dirs.config_dir();
