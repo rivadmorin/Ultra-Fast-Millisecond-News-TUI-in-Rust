@@ -16,6 +16,8 @@ pub struct App {
     pub stats: (usize, usize),
     pub should_quit: bool,
     pub is_reading: bool,
+    pub is_searching: bool,
+    pub search_query: String,
     last_db_change: u64,
 }
 
@@ -31,13 +33,16 @@ impl App {
             stats: (0, 0),
             should_quit: false,
             is_reading: false,
+            is_searching: false,
+            search_query: String::new(),
             last_db_change: 0,
         }
     }
 
     pub fn on_tick(&mut self) {
         let current_change = self.db.get_change_count();
-        if current_change > self.last_db_change {
+        // Always refresh if searching, otherwise check for changes
+        if self.is_searching || current_change > self.last_db_change {
             self.fetch_items_from_db();
             if let Ok(stats) = self.db.get_stats() {
                 self.stats = stats;
@@ -53,7 +58,13 @@ impl App {
             Some(self.categories[self.selected_category])
         };
 
-        if let Ok(new_items) = self.db.get_latest_items(50, cat) {
+        let search = if self.search_query.is_empty() {
+            None
+        } else {
+            Some(self.search_query.as_str())
+        };
+
+        if let Ok(new_items) = self.db.get_latest_items(100, cat, search) {
             self.items = new_items;
 
             if self.items.is_empty() {
@@ -67,6 +78,25 @@ impl App {
     pub fn on_key(&mut self, key: crossterm::event::KeyEvent) {
         use crossterm::event::KeyCode;
 
+        if self.is_searching {
+            match key.code {
+                KeyCode::Enter | KeyCode::Esc => {
+                    self.is_searching = false;
+                    self.fetch_items_from_db();
+                }
+                KeyCode::Backspace => {
+                    self.search_query.pop();
+                    self.fetch_items_from_db();
+                }
+                KeyCode::Char(c) => {
+                    self.search_query.push(c);
+                    self.fetch_items_from_db();
+                }
+                _ => {}
+            }
+            return;
+        }
+
         match key.code {
             KeyCode::Char('q') => {
                 if self.is_reading {
@@ -75,8 +105,17 @@ impl App {
                     self.should_quit = true;
                 }
             }
+            KeyCode::Char('/') => {
+                self.is_searching = true;
+                self.selected_item = 0;
+            }
             KeyCode::Esc => {
-                self.is_reading = false;
+                if self.is_reading {
+                    self.is_reading = false;
+                } else if !self.search_query.is_empty() {
+                    self.search_query.clear();
+                    self.fetch_items_from_db();
+                }
             }
             KeyCode::Enter => {
                 if !self.items.is_empty() {

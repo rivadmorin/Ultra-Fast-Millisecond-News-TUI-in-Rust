@@ -5,6 +5,7 @@ Live News TUI adalah aplikasi Terminal User Interface (TUI) berbasis Rust yang m
 ## ✨ Fitur Utama
 
 - **Real-Time News**: Mengambil berita terbaru dari berbagai sumber RSS/Atom secara otomatis.
+- **Search & Filter**: Cari berita spesifik dengan menekan `/` dan filter berdasarkan kategori.
 - **Efisiensi Tinggi**: Menggunakan SQLite untuk caching data dan optimasi rendering UI berbasis event.
 - **Production-Ready**: Dilengkapi dengan manajemen retensi data, sinkronisasi latar belakang, dan konfigurasi fleksibel.
 - **Hemat Sumber Daya**: Arsitektur asinkron (Tokio) memastikan penggunaan CPU dan RAM yang sangat rendah.
@@ -12,11 +13,51 @@ Live News TUI adalah aplikasi Terminal User Interface (TUI) berbasis Rust yang m
 
 ## 🏛️ Arsitektur Sistem
 
-- **Bahasa**: Rust (Edisi 2024)
-- **Database**: SQLite (Rusqlite) untuk penyimpanan persisten dan performa query cepat.
-- **UI Framework**: Ratatui & Crossterm untuk pengalaman terminal yang modern dan responsif.
-- **Concurrency**: Tokio runtime untuk pengambilan berita di latar belakang tanpa mengganggu UI.
-- **Konfigurasi**: Format TOML untuk pengaturan yang mudah dibaca manusia.
+```mermaid
+graph TD
+    A[User Interface - Ratatui] -->|Events| B[App State Manager]
+    B -->|Queries| C[SQLite Database]
+    D[Background Fetcher - Tokio] -->|Inserts| C
+    D -->|RSS/Atom| E[News Sources - Internet]
+    F[Config Manager - TOML] --> B
+    F --> D
+
+    subgraph "Data Flow"
+    E --> D
+    D --> C
+    C --> B
+    B --> A
+    end
+```
+
+### Visual ASCII Architecture:
+```text
++---------------------------------------+
+|          Live News TUI (UI)           |
++-------------------+-------------------+
+|  Category Sidebar |   News Feed List  |
++-------------------+-------------------+
+          |                  ^
+          v                  |
++---------------------------------------+
+|          App State Manager            |
++-------------------+-------------------+
+          |                  ^
+          v                  |
++---------------------------------------+
+|           SQLite Database             |
++---------------------------------------+
+          ^                  |
+          |                  v
++---------------------------------------+
+|        Background Fetcher Task        |
++---------------------------------------+
+          |
+          v
++---------------------------------------+
+|         External News Sources         |
++---------------------------------------+
+```
 
 ## 🛠️ Panduan DevOps (Instalasi & Manajemen)
 
@@ -25,7 +66,6 @@ Gunakan skrip instalasi otomatis untuk mengunduh dependensi, mengompilasi, dan m
 ```bash
 ./install.sh
 ```
-*Catatan: Pastikan Anda memiliki Rust (Cargo) atau biarkan skrip memasangkannya untuk Anda.*
 
 ### 🔄 Update (Satu Perintah)
 Perbarui aplikasi ke versi terbaru langsung dari repositori:
@@ -43,18 +83,9 @@ Hapus biner aplikasi dari sistem Anda:
 
 File konfigurasi otomatis dibuat pada saat pertama kali dijalankan di lokasi standar OS Anda (misalnya `~/.config/live_news_tui/config.toml`).
 
-Contoh Konfigurasi:
-```toml
-retention = "Daily"
-fetch_interval_active_seconds = 60
-fetch_interval_idle_seconds = 300
-active_hours_start = 6
-active_hours_end = 22
-worker_threads = 4
-```
-
 ## ⌨️ Navigasi UI
 
+- **/**: Membuka bar pencarian (Search).
 - **q / Esc**: Keluar atau Kembali.
 - **Enter**: Membaca detail artikel.
 - **j / k / ⬆ / ⬇**: Navigasi daftar berita.

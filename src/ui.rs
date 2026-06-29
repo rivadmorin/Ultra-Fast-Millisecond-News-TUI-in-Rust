@@ -9,16 +9,19 @@ use ratatui::{
 };
 
 pub fn draw(f: &mut Frame, app: &mut App) {
+    // Determine dynamic layout based on search state
+    let header_height = 3;
+    let footer_height = 1;
+    let search_height = if app.is_searching { 3 } else { 0 };
+
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints(
-            [
-                Constraint::Length(3), // Header
-                Constraint::Min(0),    // Main body
-                Constraint::Length(1), // Footer/Status bar
-            ]
-            .as_ref(),
-        )
+        .constraints([
+            Constraint::Length(header_height),
+            Constraint::Length(search_height),
+            Constraint::Min(0),
+            Constraint::Length(footer_height),
+        ])
         .split(f.area());
 
     // Header
@@ -59,14 +62,26 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     let header = Paragraph::new(header_content).block(Block::default().borders(Borders::ALL));
     f.render_widget(header, chunks[0]);
 
+    // Search Bar
+    if app.is_searching {
+        let search_block = Paragraph::new(format!(" > {}", app.search_query)).block(
+            Block::default()
+                .title(" Search (Enter/Esc to close) ")
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::Cyan)),
+        );
+        f.render_widget(search_block, chunks[1]);
+    }
+
+    // Main Body
     if app.is_reading {
-        draw_reading_view(f, app, chunks[1]);
+        draw_reading_view(f, app, chunks[2]);
     } else {
-        draw_main_view(f, app, chunks[1]);
+        draw_main_view(f, app, chunks[2]);
     }
 
     // Status Bar
-    let status_content = Line::from(vec![
+    let mut status_spans = vec![
         Span::styled(
             format!(" [Items: {}]", app.stats.0),
             Style::default().fg(Color::Cyan),
@@ -75,13 +90,23 @@ pub fn draw(f: &mut Frame, app: &mut App) {
             format!(" [Sources: {}]", app.stats.1),
             Style::default().fg(Color::Green),
         ),
-        Span::raw(" | "),
-        Span::styled(
-            "q: Quit | Enter: Read | h/l: Category | j/k: Navigate",
-            Style::default().fg(Color::DarkGray),
-        ),
-    ]);
-    f.render_widget(Paragraph::new(status_content), chunks[2]);
+    ];
+
+    if !app.search_query.is_empty() {
+        status_spans.push(Span::styled(
+            format!(" [Filter: {}]", app.search_query),
+            Style::default().fg(Color::Yellow),
+        ));
+    }
+
+    status_spans.push(Span::raw(" | "));
+    status_spans.push(Span::styled(
+        "/: Search | q: Quit | Enter: Read | h/l: Category",
+        Style::default().fg(Color::DarkGray),
+    ));
+
+    let status_content = Line::from(status_spans);
+    f.render_widget(Paragraph::new(status_content), chunks[3]);
 }
 
 fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect) {
@@ -145,7 +170,15 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect) {
         })
         .collect();
 
-    let feed_title = format!(" {} - Latest News ", app.categories[app.selected_category]);
+    let feed_title = if app.search_query.is_empty() {
+        format!(" {} - Latest News ", app.categories[app.selected_category])
+    } else {
+        format!(
+            " {} - Search Results for '{}' ",
+            app.categories[app.selected_category], app.search_query
+        )
+    };
+
     let news_list =
         List::new(items).block(Block::default().title(feed_title).borders(Borders::ALL));
 

@@ -112,28 +112,36 @@ impl Db {
         Ok(count)
     }
 
-    pub fn get_latest_items(&self, limit: usize, category: Option<&str>) -> Result<Vec<NewsItem>> {
+    pub fn get_latest_items(
+        &self,
+        limit: usize,
+        category: Option<&str>,
+        search: Option<&str>,
+    ) -> Result<Vec<NewsItem>> {
         let conn = self.conn.lock().unwrap();
 
-        let mut query =
-            String::from("SELECT title, source, category, url, description, timestamp FROM news");
-        if category.is_some() {
-            query.push_str(" WHERE category = ?1");
+        let mut query = String::from(
+            "SELECT title, source, category, url, description, timestamp FROM news WHERE 1=1",
+        );
+        let mut params_vec: Vec<rusqlite::types::Value> = Vec::new();
+
+        if let Some(cat) = category {
+            query.push_str(" AND category = ?");
+            params_vec.push(rusqlite::types::Value::Text(cat.to_string()));
         }
-        query.push_str(" ORDER BY timestamp DESC LIMIT ");
-        if category.is_some() {
-            query.push_str("?2");
-        } else {
-            query.push_str("?1");
+
+        if let Some(q) = search {
+            query.push_str(" AND (title LIKE ? OR description LIKE ?)");
+            let pattern = format!("%{}%", q);
+            params_vec.push(rusqlite::types::Value::Text(pattern.clone()));
+            params_vec.push(rusqlite::types::Value::Text(pattern));
         }
+
+        query.push_str(" ORDER BY timestamp DESC LIMIT ?");
+        params_vec.push(rusqlite::types::Value::Integer(limit as i64));
 
         let mut stmt = conn.prepare(&query)?;
-
-        let mut rows = if let Some(cat) = category {
-            stmt.query(params![cat, limit as i64])?
-        } else {
-            stmt.query(params![limit as i64])?
-        };
+        let mut rows = stmt.query(rusqlite::params_from_iter(params_vec))?;
 
         let mut items = Vec::new();
         while let Some(row) = rows.next()? {
