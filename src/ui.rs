@@ -24,7 +24,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     // Header
     let now = Utc::now();
     let hour = now.hour();
-    let is_active = hour >= 6 && hour < 22; // Hardcoded for UI display consistency with default config
+    let is_active = (6..22).contains(&hour); // Hardcoded for UI display consistency with default config
 
     let mode_str = if is_active {
         "Active (High Frequency)"
@@ -109,7 +109,11 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect) {
         .iter()
         .enumerate()
         .map(|(i, item)| {
-            let datetime = Utc.timestamp_opt(item.timestamp, 0).latest().unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap()).naive_local();
+            let datetime = Utc
+                .timestamp_opt(item.published_at, 0)
+                .latest()
+                .unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap())
+                .naive_local();
             let time_str = datetime.format("%H:%M:%S").to_string();
 
             let mut style = Style::default();
@@ -145,7 +149,11 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect) {
 fn draw_reading_view(f: &mut Frame, app: &App, area: Rect) {
     let item = &app.items[app.selected_item];
 
-    let datetime = Utc.timestamp_opt(item.timestamp, 0).latest().unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap()).naive_local();
+    let datetime = Utc
+        .timestamp_opt(item.published_at, 0)
+        .latest()
+        .unwrap_or_else(|| Utc.timestamp_opt(0, 0).unwrap())
+        .naive_local();
     let time_str = datetime.format("%Y-%m-%d %H:%M:%S").to_string();
 
     let mut text = vec![
@@ -175,7 +183,7 @@ fn draw_reading_view(f: &mut Frame, app: &App, area: Rect) {
         Line::from(""),
     ];
 
-    if let Some(desc) = &item.description {
+    if let Some(desc) = &item.content_summary {
         for line in desc.lines() {
             text.push(Line::from(line.to_string()));
         }
