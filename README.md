@@ -1,6 +1,6 @@
 # 🚀 Live News TUI: The Ultimate Terminal Intelligence Aggregator
 
-**Live News TUI** adalah platform agregator berita berbasis Terminal User Interface (TUI) tingkat elit. Dirancang untuk kecepatan milidetik, privasi mutlak, dan estetika profesional kelas workstation. Aplikasi ini menggabungkan sistem **Rust** yang ultra-aman dengan fleksibilitas mesin scraping **Python (Scrapling)** untuk menghadirkan berita global secara stealth, tanpa iklan, dan tanpa pelacakan.
+**Live News TUI** adalah platform agregator berita berbasis Terminal User Interface (TUI) tingkat elit. Dirancang untuk kecepatan milidetik, privasi mutlak, dan estetika profesional kelas workstation. Aplikasi ini menggabungkan ketangguhan sistem **Rust** dengan fleksibilitas mesin scraping **Python (Scrapling)** dan kemampuan pencarian global **DuckDuckGo** untuk menghadirkan berita global secara stealth.
 
 ---
 
@@ -9,35 +9,35 @@
 ### 🕵️ Stealth Scraping Engine (Hybrid Architecture)
 Ditenagai oleh library `Scrapling` di sisi Python yang diintegrasikan secara native melalui `PyO3`.
 - **Anti-Bot Bypass**: Menembus proteksi Cloudflare (403/429) secara otomatis.
-- **Adaptive Extraction**: Ekstraksi konten cerdas yang menyesuaikan dengan berbagai struktur situs berita.
-- **Privacy First**: Tidak ada pelacakan user, tidak ada pengumpulan data, murni lokal.
+- **Stealthy Sessions**: Mensimulasikan sidik jari browser manusia asli.
+
+### 🔍 Custom Global Search (DuckDuckGo Integration)
+Bosan dengan sumber yang ada? Cari berita apapun di seluruh dunia secara real-time:
+- **Global Search (`s`)**: Tekan `s` untuk melakukan pencarian kata kunci global menggunakan engine DuckDuckGo.
+- **Instant Filtering**: Filter hasil pencarian secara instan langsung di terminal.
 
 ### 🌐 Cakupan Berita Masif (100+ Premium Sources)
-Akses instan ke kategori berita paling berpengaruh di dunia:
-- **🇮🇩 Indonesia Premium**: Detikcom, Kompas, Antara, CNN ID, CNBC ID, Tempo, Bisnis.com, Republika.
+- **🇮🇩 Indonesia Premium**: Detikcom, Kompas, Antara, CNN ID, CNBC ID, Tempo, Bisnis.com, Republika, Kumparan.
 - **🌍 Geopolitik & World**: Reuters, BBC, NYT World, Al Jazeera, SCMP, The Guardian, DW, France 24.
-- **💰 Finance & Global Economy**: Bloomberg, WSJ, Financial Times, The Economist, Investing.com, Forbes, Yahoo Finance.
-- **🔬 Tech, AI & Innovation**: Hacker News, TechCrunch, OpenAI, DeepMind, The Verge, Wired, Ars Technica, MIT Tech Review.
+- **💰 Finance & Global Economy**: Bloomberg, WSJ, Financial Times, The Economist, Investing.com, Forbes.
+- **🔬 Tech, AI & Innovation**: Hacker News, TechCrunch, OpenAI, DeepMind, The Verge, Wired.
 - **₿ Crypto & Web3**: CoinDesk, CoinTelegraph, Bitcoin Magazine, Decrypt, The Block.
-- **🧪 Science, Health & Space**: NASA, Nature, Science Daily, National Geographic, WHO, LiveScience, Quanta.
-- **🎭 Lifestyle & Culture**: Vogue, GQ, Vanity Fair, Rolling Stone, Architectural Digest, Esquire.
-- **⚽ Sports & Gaming**: ESPN, BBC Sport, Sky Sports, FIFA, IGN, GameSpot, Kotaku, Polygon.
-- **⚖️ Legal & Auto**: SCOTUSblog, DOJ News, Law.com, Autoblog, Car and Driver, MotorTrend.
+- **🧪 Science & Health**: NASA, Nature, Science Daily, Healthline, WHO, LiveScience.
 
 ### ⚡ Performa Workstation Modern
-- **Rust/Tokio Core**: Arsitektur asinkron yang mampu menangani ratusan feed tanpa beban CPU.
-- **SQLite WAL Mode**: Database teroptimasi dengan Write-Ahead Logging untuk performa disk I/O maksimal.
-- **O(1) Render UI**: Pipeline rendering berbasis event yang hanya memproses data saat dibutuhkan.
+- **Rust/Tokio Core**: Arsitektur asinkron untuk performa tanpa hambatan.
+- **SQLite WAL Mode**: Database teroptimasi untuk manajemen ribuan artikel.
+- **Sync Countdown**: Indikator hitung mundur real-time untuk sinkronisasi berita.
 
 ---
 
 ## 🏛️ Arsitektur Sistem
 
-### Visual Alur Data (Mermaid)
+### Visual Alur Data (Hybrid Rust-Python)
 
 ```mermaid
 graph TD
-    subgraph UI_Layer [User Interface - Ratatui]
+    subgraph UI_Layer [Terminal UI - Ratatui]
         A[View Manager]
         B[Theme Engine]
         C[Input Event Handler]
@@ -49,12 +49,13 @@ graph TD
         F[Async SQLite Manager]
     end
 
-    subgraph Stealth_Module [Scraping Module - Python/Scrapling]
-        G[StealthySession]
-        H[Cloudflare Solver]
+    subgraph Python_Bridge [Stealth Module - PyO3]
+        G[Scrapling Fetcher]
+        H[DuckDuckGo Search]
     end
 
-    I[Global Sources] -->|HTTPS Stealth Fetch| G
+    I[Global Sources] -->|Stealth Fetch| G
+    H -->|Search Results| D
     G -->|Raw Bytes| E
     E -->|Write Transaction| F
     F -->|Indexed Query| D
@@ -70,40 +71,28 @@ graph TD
 ### 1. Prasyarat
 - **Rust Toolchain** (v1.75+)
 - **Python** (v3.10+)
-- **Scrapling**: `pip install scrapling`
+- **Dependencies**: `pip install scrapling duckduckgo-search`
 
 ### 2. Instalasi Satu Perintah
 ```bash
 ./install.sh
 ```
-Skrip otomatis akan mengonfigurasi dependensi, mengompilasi biner performa tinggi (`--release`), dan mendaftarkannya ke PATH sistem.
-
-### 3. Pemeliharaan
-- **Update**: `./update.sh` (Pembaruan kode dan re-build otomatis).
-- **Uninstall**: `./uninstall.sh` (Penghapusan bersih).
 
 ---
 
-## ⌨️ Navigasi & Pintasan Keyboard (Quick Reference)
+## ⌨️ Navigasi & Pintasan Keyboard
 
 | Tombol | Aksi |
 | :--- | :--- |
-| `/` | **Search**: Cari berita secara instan di semua kategori |
+| `s` | **Global Search**: Cari topik berita apapun di dunia (via DDG) |
+| `/` | **Local Search**: Filter berita di kategori yang sedang dibuka |
 | `t` | **Theme**: Ganti tema (Black, White, DeepBlue, Matrix) |
 | `o` | **Open**: Buka URL berita di Browser sistem default |
-| `Enter` | **Read**: Baca detail artikel di dalam terminal |
+| `Enter` | **Read**: Baca detail artikel di terminal |
 | `Esc / q` | **Back**: Kembali ke daftar berita atau keluar aplikasi |
-| `h / l` | **Category**: Navigasi antar tab kategori (Kiri/Kanan) |
-| `j / k` | **Navigate**: Scroll daftar berita (Atas/Bawah) |
+| `h / l` | **Category**: Navigasi antar tab kategori |
+| `j / k` | **Navigate**: Scroll daftar berita |
 | `?` | **Help**: Tampilkan jendela bantuan |
-
----
-
-## ⚙️ Konfigurasi (config.toml)
-Lokasi: `~/.config/live_news_tui/config.toml`
-- `fetch_interval_active_seconds`: Interval sinkronisasi (Default: 60s).
-- `retention`: Masa simpan data (Hourly, Daily, Weekly).
-- `theme`: Tema awal saat dijalankan.
 
 ---
 

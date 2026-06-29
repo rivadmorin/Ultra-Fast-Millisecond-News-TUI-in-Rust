@@ -1,6 +1,7 @@
-use crate::config::Theme;
 use crate::db::{Db, NewsItem};
 use crate::sources::get_categories;
+use crate::config::Theme;
+use crate::scraper::Scraper;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
@@ -13,6 +14,7 @@ pub enum AppEvent {
 pub enum ViewMode {
     Main,
     Reading,
+    GlobalSearch,
 }
 
 pub struct App {
@@ -60,7 +62,7 @@ impl App {
         let next = self.db.next_fetch_timestamp.load(Ordering::Relaxed);
         self.refresh_countdown = (next - now).max(0);
 
-        if self.is_searching || current_change > self.last_db_change {
+        if self.view_mode != ViewMode::GlobalSearch && (self.is_searching || current_change > self.last_db_change) {
             self.fetch_items_from_db();
             if let Ok(stats) = self.db.get_stats() {
                 self.stats = stats;
@@ -93,6 +95,26 @@ impl App {
         }
     }
 
+    fn perform_global_search(&mut self) {
+        let query = self.search_query.clone();
+        if query.is_empty() { return; }
+
+        if let Ok(results) = Scraper::ddg_search(&query) {
+            self.items = results.into_iter().map(|a| NewsItem {
+                title: a.title,
+                source: "DuckDuckGo".to_string(),
+                category: "Global Search".to_string(),
+                url: a.source_url,
+                description: Some(a.content),
+                timestamp: chrono::Utc::now().timestamp(),
+                formatted_time: "NOW".to_string(),
+                formatted_source: "[SEARCH]".to_string(),
+            }).collect();
+            self.selected_item = 0;
+            self.view_mode = ViewMode::GlobalSearch;
+        }
+    }
+
     pub fn on_key(&mut self, key: crossterm::event::KeyEvent) {
         use crossterm::event::KeyCode;
 
@@ -103,17 +125,28 @@ impl App {
 
         if self.is_searching {
             match key.code {
-                KeyCode::Enter | KeyCode::Esc => {
+                KeyCode::Enter => {
                     self.is_searching = false;
-                    self.fetch_items_from_db();
+                    if self.view_mode == ViewMode::GlobalSearch || self.search_query.starts_with('!') {
+                        if self.search_query.starts_with('!') {
+                             self.search_query = self.search_query[1..].to_string();
+                        }
+                        self.perform_global_search();
+                    } else {
+                        self.fetch_items_from_db();
+                    }
+                }
+                KeyCode::Esc => {
+                    self.is_searching = false;
+                    if self.view_mode != ViewMode::GlobalSearch {
+                        self.fetch_items_from_db();
+                    }
                 }
                 KeyCode::Backspace => {
                     self.search_query.pop();
-                    self.fetch_items_from_db();
                 }
                 KeyCode::Char(c) => {
                     self.search_query.push(c);
-                    self.fetch_items_from_db();
                 }
                 _ => {}
             }
@@ -123,16 +156,27 @@ impl App {
         match key.code {
             KeyCode::Char('q') => {
                 if self.view_mode == ViewMode::Reading {
+                    self.view_mode = if self.items.get(0).map(|i| i.source.as_str() == "DuckDuckGo").unwrap_or(false) {
+                        ViewMode::GlobalSearch
+                    } else {
+                        ViewMode::Main
+                    };
+                } else if self.view_mode == ViewMode::GlobalSearch {
                     self.view_mode = ViewMode::Main;
+                    self.search_query.clear();
+                    self.fetch_items_from_db();
                 } else {
                     self.should_quit = true;
                 }
             }
             KeyCode::Char('/') => {
-                if self.view_mode == ViewMode::Main {
-                    self.is_searching = true;
-                    self.selected_item = 0;
-                }
+                self.is_searching = true;
+                self.selected_item = 0;
+            }
+            KeyCode::Char('s') => {
+                self.is_searching = true;
+                self.search_query.clear();
+                self.view_mode = ViewMode::GlobalSearch;
             }
             KeyCode::Char('?') | KeyCode::F(1) => {
                 self.is_showing_help = true;
@@ -153,19 +197,27 @@ impl App {
             }
             KeyCode::Esc => {
                 if self.view_mode == ViewMode::Reading {
+                    self.view_mode = if self.items.get(0).map(|i| i.source.as_str() == "DuckDuckGo").unwrap_or(false) {
+                        ViewMode::GlobalSearch
+                    } else {
+                        ViewMode::Main
+                    };
+                } else if self.view_mode == ViewMode::GlobalSearch {
                     self.view_mode = ViewMode::Main;
+                    self.search_query.clear();
+                    self.fetch_items_from_db();
                 } else if !self.search_query.is_empty() {
                     self.search_query.clear();
                     self.fetch_items_from_db();
                 }
             }
             KeyCode::Enter => {
-                if !self.items.is_empty() && self.view_mode == ViewMode::Main {
+                if !self.items.is_empty() && (self.view_mode == ViewMode::Main || self.view_mode == ViewMode::GlobalSearch) {
                     self.view_mode = ViewMode::Reading;
                 }
             }
             KeyCode::Down | KeyCode::Char('j') => {
-                if self.view_mode == ViewMode::Main
+                if (self.view_mode == ViewMode::Main || self.view_mode == ViewMode::GlobalSearch)
                     && !self.items.is_empty()
                     && self.selected_item < self.items.len() - 1
                 {
@@ -173,14 +225,12 @@ impl App {
                 }
             }
             KeyCode::Up | KeyCode::Char('k') => {
-                if self.view_mode == ViewMode::Main && self.selected_item > 0 {
+                if (self.view_mode == ViewMode::Main || self.view_mode == ViewMode::GlobalSearch) && self.selected_item > 0 {
                     self.selected_item -= 1;
                 }
             }
             KeyCode::Right | KeyCode::Char('l') => {
-                if self.view_mode == ViewMode::Main
-                    && self.selected_category < self.categories.len() - 1
-                {
+                if self.view_mode == ViewMode::Main && self.selected_category < self.categories.len() - 1 {
                     self.selected_category += 1;
                     self.selected_item = 0;
                     self.fetch_items_from_db();

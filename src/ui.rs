@@ -6,7 +6,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, BorderType, Borders, Clear, List, ListItem, ListState, Paragraph, Wrap},
+    widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap, BorderType, Clear},
 };
 
 struct ThemeColors {
@@ -60,19 +60,19 @@ impl ThemeColors {
 pub fn draw(f: &mut Frame, app: &mut App) {
     let colors = ThemeColors::from_theme(app.theme);
 
-    f.render_widget(
-        Block::default().style(Style::default().bg(colors.bg)),
-        f.area(),
-    );
+    f.render_widget(Block::default().style(Style::default().bg(colors.bg)), f.area());
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Min(0), Constraint::Length(1)])
+        .constraints([
+            Constraint::Min(0),
+            Constraint::Length(1),
+        ])
         .split(f.area());
 
     match app.view_mode {
         ViewMode::Reading => draw_reading_view(f, app, chunks[0], &colors),
-        ViewMode::Main => draw_main_view(f, app, chunks[0], &colors),
+        ViewMode::Main | ViewMode::GlobalSearch => draw_main_view(f, app, chunks[0], &colors),
     }
 
     draw_help_bar(f, app, chunks[1], &colors);
@@ -89,40 +89,54 @@ pub fn draw(f: &mut Frame, app: &mut App) {
 fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect, colors: &ThemeColors) {
     let main_layout = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Min(0)])
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Min(0),
+        ])
         .split(area);
 
     draw_header(f, app, main_layout[0], colors);
 
-    let content_chunks = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Length(16), Constraint::Min(0)])
-        .split(main_layout[1]);
+    let content_chunks = if app.view_mode == ViewMode::GlobalSearch {
+        Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Min(0)])
+            .split(main_layout[1])
+    } else {
+        Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Length(16),
+                Constraint::Min(0),
+            ])
+            .split(main_layout[1])
+    };
 
-    let categories: Vec<ListItem> = app
-        .categories
-        .iter()
-        .enumerate()
-        .map(|(i, c)| {
-            let mut style = Style::default().fg(colors.text);
-            if i == app.selected_category {
-                style = style.fg(colors.cyan).add_modifier(Modifier::BOLD);
-            }
-            ListItem::new(format!(" {}", c)).style(style)
-        })
-        .collect();
+    if app.view_mode != ViewMode::GlobalSearch {
+        // Categories
+        let categories: Vec<ListItem> = app
+            .categories
+            .iter()
+            .enumerate()
+            .map(|(i, c)| {
+                let mut style = Style::default().fg(colors.text);
+                if i == app.selected_category {
+                    style = style.fg(colors.cyan).add_modifier(Modifier::BOLD);
+                }
+                ListItem::new(format!(" {}", c)).style(style)
+            })
+            .collect();
 
-    let categories_block = Block::default()
-        .title(" Categories ")
-        .borders(Borders::ALL)
-        .border_type(BorderType::Rounded)
-        .border_style(Style::default().fg(colors.gray));
+        let categories_block = Block::default()
+            .title(" Categories ")
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
+            .border_style(Style::default().fg(colors.gray));
 
-    f.render_widget(
-        List::new(categories).block(categories_block),
-        content_chunks[0],
-    );
+        f.render_widget(List::new(categories).block(categories_block), content_chunks[0]);
+    }
 
+    // News Feed
     let items: Vec<ListItem> = app
         .items
         .iter()
@@ -134,14 +148,8 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect, colors: &ThemeColors
             }
 
             let content = Line::from(vec![
-                Span::styled(
-                    format!(" {} ", item.formatted_time),
-                    Style::default().fg(colors.gray),
-                ),
-                Span::styled(
-                    format!(" {} ", item.formatted_source),
-                    Style::default().fg(colors.green),
-                ),
+                Span::styled(format!(" {} ", item.formatted_time), Style::default().fg(colors.gray)),
+                Span::styled(format!(" {} ", item.formatted_source), Style::default().fg(colors.green)),
                 Span::styled(&item.title, Style::default().fg(colors.text)),
             ]);
 
@@ -149,11 +157,10 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect, colors: &ThemeColors
         })
         .collect();
 
-    let feed_title = if app.search_query.is_empty() {
-        format!(
-            " {} - Stealthy Feed ",
-            app.categories[app.selected_category]
-        )
+    let feed_title = if app.view_mode == ViewMode::GlobalSearch {
+        format!(" Global Search Results: '{}' ", app.search_query)
+    } else if app.search_query.is_empty() {
+        format!(" {} - Stealthy Feed ", app.categories[app.selected_category])
     } else {
         format!(" Search: '{}' ", app.search_query)
     };
@@ -166,57 +173,27 @@ fn draw_main_view(f: &mut Frame, app: &mut App, area: Rect, colors: &ThemeColors
 
     let mut state = ListState::default();
     state.select(Some(app.selected_item));
-    f.render_stateful_widget(
-        List::new(items).block(news_block),
-        content_chunks[1],
-        &mut state,
-    );
+    let target_chunk = if app.view_mode == ViewMode::GlobalSearch { content_chunks[0] } else { content_chunks[1] };
+    f.render_stateful_widget(List::new(items).block(news_block), target_chunk, &mut state);
 }
 
 fn draw_header(f: &mut Frame, app: &App, area: Rect, colors: &ThemeColors) {
     let now = Utc::now();
     let hour = now.hour();
     let is_active = (6..22).contains(&hour);
-    let mode_str = if is_active { "ACTIVE" } else { "IDLE" };
-    let mode_color = if is_active {
-        colors.green
-    } else {
-        Color::Yellow
-    };
+    let mode_str = if app.view_mode == ViewMode::GlobalSearch { "GLOBAL SEARCH" } else if is_active { "ACTIVE" } else { "IDLE" };
+    let mode_color = if app.view_mode == ViewMode::GlobalSearch { Color::Magenta } else if is_active { colors.green } else { Color::Yellow };
 
     let header_content = Line::from(vec![
-        Span::styled(
-            " LIVE NEWS TUI ",
-            Style::default()
-                .fg(colors.bg)
-                .bg(colors.cyan)
-                .add_modifier(Modifier::BOLD),
-        ),
+        Span::styled(" LIVE NEWS TUI ", Style::default().fg(colors.bg).bg(colors.cyan).add_modifier(Modifier::BOLD)),
         Span::raw(" "),
-        Span::styled(
-            format!(" {} ", mode_str),
-            Style::default()
-                .fg(colors.bg)
-                .bg(mode_color)
-                .add_modifier(Modifier::BOLD),
-        ),
+        Span::styled(format!(" {} ", mode_str), Style::default().fg(colors.bg).bg(mode_color).add_modifier(Modifier::BOLD)),
         Span::raw(" | "),
-        Span::styled(
-            format!("Items: {} | Sources: {}", app.stats.0, app.stats.1),
-            Style::default().fg(colors.gray),
-        ),
+        Span::styled(format!("Items: {} | Sources: {}", app.stats.0, app.stats.1), Style::default().fg(colors.gray)),
         Span::raw(" | "),
-        Span::styled(
-            format!("Sync: {}s", app.refresh_countdown),
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        ),
+        Span::styled(format!("Sync: {}s", app.refresh_countdown), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
         Span::raw(" | "),
-        Span::styled(
-            format!("Theme: {:?}", app.theme),
-            Style::default().fg(colors.cyan),
-        ),
+        Span::styled(format!("Theme: {:?}", app.theme), Style::default().fg(colors.cyan)),
     ]);
 
     let block = Block::default()
@@ -231,15 +208,16 @@ fn draw_help_bar(f: &mut Frame, app: &App, area: Rect, colors: &ThemeColors) {
     let help_text = if app.view_mode == ViewMode::Reading {
         " [o] open in browser | [Esc/q] back "
     } else if app.is_searching {
-        " [Enter/Esc] close "
+        " [Enter] search | [Esc] cancel "
+    } else if app.view_mode == ViewMode::GlobalSearch {
+        " [/] refine | [Enter] read | [o] browser | [Esc/q] exit search "
     } else {
-        " [/] search | [t] theme | [o] open in browser | [Enter] read | [h/l] category | [j/k] navigate | [q] quit | [?] help "
+        " [/] search | [s] global search | [t] theme | [Enter] read | [q] quit | [?] help "
     };
 
-    let help_content = Line::from(vec![Span::styled(
-        help_text,
-        Style::default().fg(colors.bg).bg(colors.gray),
-    )]);
+    let help_content = Line::from(vec![
+        Span::styled(help_text, Style::default().fg(colors.bg).bg(colors.gray)),
+    ]);
 
     f.render_widget(Paragraph::new(help_content), area);
 }
@@ -248,44 +226,25 @@ fn draw_reading_view(f: &mut Frame, app: &App, area: Rect, colors: &ThemeColors)
     let item = &app.items[app.selected_item];
 
     let mut text = vec![
-        Line::from(Span::styled(
-            &item.title,
-            Style::default()
-                .fg(colors.cyan)
-                .add_modifier(Modifier::BOLD),
-        )),
+        Line::from(Span::styled(&item.title, Style::default().fg(colors.cyan).add_modifier(Modifier::BOLD))),
         Line::from(""),
         Line::from(vec![
             Span::styled("Source: ", Style::default().fg(colors.gray)),
             Span::styled(&item.source, Style::default().fg(colors.green)),
             Span::raw(" | "),
             Span::styled("Time: ", Style::default().fg(colors.gray)),
-            Span::raw(
-                Utc.timestamp_opt(item.timestamp, 0)
-                    .latest()
-                    .unwrap()
-                    .format("%Y-%m-%d %H:%M:%S")
-                    .to_string(),
-            ),
+            Span::raw(Utc.timestamp_opt(item.timestamp, 0).latest().unwrap().format("%Y-%m-%d %H:%M:%S").to_string()),
         ]),
         Line::from(vec![
             Span::styled("URL: ", Style::default().fg(colors.gray)),
-            Span::styled(
-                &item.url,
-                Style::default()
-                    .fg(Color::Blue)
-                    .add_modifier(Modifier::UNDERLINED),
-            ),
+            Span::styled(&item.url, Style::default().fg(Color::Blue).add_modifier(Modifier::UNDERLINED)),
         ]),
         Line::from(""),
     ];
 
     if let Some(desc) = &item.description {
         for line in desc.lines() {
-            text.push(Line::from(Span::styled(
-                line.to_string(),
-                Style::default().fg(colors.text),
-            )));
+            text.push(Line::from(Span::styled(line.to_string(), Style::default().fg(colors.text))));
         }
     }
 
@@ -295,78 +254,45 @@ fn draw_reading_view(f: &mut Frame, app: &App, area: Rect, colors: &ThemeColors)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(colors.cyan));
 
-    f.render_widget(
-        Paragraph::new(text).block(block).wrap(Wrap { trim: true }),
-        area,
-    );
+    f.render_widget(Paragraph::new(text).block(block).wrap(Wrap { trim: true }), area);
 }
 
 fn draw_search_popup(f: &mut Frame, app: &App, colors: &ThemeColors) {
     let area = centered_rect(50, 10, f.area());
 
+    let title = if app.view_mode == ViewMode::GlobalSearch { " Refine Global Search " } else { " Stealthy Search " };
+
     let block = Block::default()
-        .title(" Stealthy Search ")
+        .title(title)
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .border_style(Style::default().fg(colors.cyan))
         .style(Style::default().bg(colors.bg));
 
-    let search_text = Paragraph::new(format!(" > {}", app.search_query))
-        .block(block)
-        .style(Style::default().fg(colors.text));
+    let search_text = Paragraph::new(format!(" > {}", app.search_query)).block(block).style(Style::default().fg(colors.text));
 
     f.render_widget(Clear, area);
     f.render_widget(search_text, area);
 }
 
 fn draw_help_popup(f: &mut Frame, _app: &App, colors: &ThemeColors) {
-    let area = centered_rect(60, 50, f.area());
+    let area = centered_rect(60, 55, f.area());
 
     let text = vec![
-        Line::from(Span::styled(
-            "Stealthy Terminal Shortcuts",
-            Style::default()
-                .fg(colors.cyan)
-                .add_modifier(Modifier::BOLD),
-        )),
+        Line::from(Span::styled("Stealthy Terminal Shortcuts", Style::default().fg(colors.cyan).add_modifier(Modifier::BOLD))),
         Line::from(""),
-        Line::from(vec![
-            Span::styled(" [/] ", Style::default().fg(colors.green)),
-            Span::raw(" Adaptive Search"),
-        ]),
-        Line::from(vec![
-            Span::styled(" [t] ", Style::default().fg(colors.green)),
-            Span::raw(" Toggle Theme Engine"),
-        ]),
-        Line::from(vec![
-            Span::styled(" [o] ", Style::default().fg(colors.green)),
-            Span::raw(" Open in Web Browser"),
-        ]),
-        Line::from(vec![
-            Span::styled(" [Enter] ", Style::default().fg(colors.green)),
-            Span::raw(" Read Article (TUI)"),
-        ]),
-        Line::from(vec![
-            Span::styled(" [Esc/q] ", Style::default().fg(colors.green)),
-            Span::raw(" Close Popup"),
-        ]),
-        Line::from(vec![
-            Span::styled(" [h/l] ", Style::default().fg(colors.green)),
-            Span::raw(" Switch Categories"),
-        ]),
-        Line::from(vec![
-            Span::styled(" [j/k] ", Style::default().fg(colors.green)),
-            Span::raw(" Navigate Feed"),
-        ]),
-        Line::from(vec![
-            Span::styled(" [?] ", Style::default().fg(colors.green)),
-            Span::raw(" Show Help"),
-        ]),
+        Line::from(vec![Span::styled(" [/] ", Style::default().fg(colors.green)), Span::raw(" Local Search (Current Category)")]),
+        Line::from(vec![Span::styled(" [s] ", Style::default().fg(colors.green)), Span::raw(" Global Search (DuckDuckGo Engine)")]),
+        Line::from(vec![Span::styled(" [t] ", Style::default().fg(colors.green)), Span::raw(" Toggle Theme Engine")]),
+        Line::from(vec![Span::styled(" [o] ", Style::default().fg(colors.green)), Span::raw(" Open in Web Browser")]),
+        Line::from(vec![Span::styled(" [Enter] ", Style::default().fg(colors.green)), Span::raw(" Read Article (TUI)")]),
+        Line::from(vec![Span::styled(" [Esc/q] ", Style::default().fg(colors.green)), Span::raw(" Back / Close popup / Exit Search")]),
+        Line::from(vec![Span::styled(" [h/l] ", Style::default().fg(colors.green)), Span::raw(" Switch Categories")]),
+        Line::from(vec![Span::styled(" [j/k] ", Style::default().fg(colors.green)), Span::raw(" Navigate Feed")]),
+        Line::from(vec![Span::styled(" [?] ", Style::default().fg(colors.green)), Span::raw(" Show Help")]),
         Line::from(""),
-        Line::from(Span::styled(
-            "Powered by Rust, SQLite & Scrapling",
-            Style::default().fg(colors.gray),
-        )),
+        Line::from(Span::styled("Pro Tip: Global search works in any mode via 's'.", Style::default().fg(colors.gray))),
+        Line::from(Span::styled("Powered by Rust, SQLite, Scrapling & DDG", Style::default().fg(colors.gray))),
     ];
 
     let block = Block::default()
@@ -376,10 +302,7 @@ fn draw_help_popup(f: &mut Frame, _app: &App, colors: &ThemeColors) {
         .border_style(Style::default().fg(colors.cyan))
         .style(Style::default().bg(colors.bg));
 
-    let help_text = Paragraph::new(text)
-        .block(block)
-        .wrap(Wrap { trim: true })
-        .style(Style::default().fg(colors.text));
+    let help_text = Paragraph::new(text).block(block).wrap(Wrap { trim: true }).style(Style::default().fg(colors.text));
 
     f.render_widget(Clear, area);
     f.render_widget(help_text, area);

@@ -32,8 +32,8 @@ if ! command -v cargo &> /dev/null; then
 fi
 
 # Install Python requirements
-echo "Installing Python dependencies (scrapling)..."
-pip3 install scrapling --break-system-packages || pip3 install scrapling
+echo "Installing Python dependencies (scrapling, duckduckgo-search)..."
+pip3 install scrapling duckduckgo-search --break-system-packages || pip3 install scrapling duckduckgo-search
 
 echo "Compiling Live News TUI in release mode..."
 cargo build --release
