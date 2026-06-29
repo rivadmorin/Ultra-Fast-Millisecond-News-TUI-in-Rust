@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
-
 use directories::ProjectDirs;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -24,14 +23,23 @@ impl RetentionPolicy {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+pub enum Theme {
+    Black,
+    White,
+    DeepBlue,
+    Matrix,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     pub retention: RetentionPolicy,
     pub fetch_interval_active_seconds: u64,
     pub fetch_interval_idle_seconds: u64,
-    pub active_hours_start: u32, // 0-23
-    pub active_hours_end: u32,   // 0-23
+    pub active_hours_start: u32,
+    pub active_hours_end: u32,
     pub worker_threads: usize,
+    pub theme: Theme,
 }
 
 impl Default for Config {
@@ -43,6 +51,7 @@ impl Default for Config {
             active_hours_start: 6,
             active_hours_end: 22,
             worker_threads: 4,
+            theme: Theme::Black,
         }
     }
 }
@@ -60,7 +69,6 @@ impl Config {
                     }
                 }
             } else {
-                // Try to create default config file
                 let _ = fs::create_dir_all(config_dir);
                 let config = Config::default();
                 if let Ok(toml) = toml::to_string_pretty(&config) {

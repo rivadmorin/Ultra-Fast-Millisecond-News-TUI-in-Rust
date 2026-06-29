@@ -1,3 +1,4 @@
+use crate::config::Theme;
 use crate::db::{Db, NewsItem};
 use crate::sources::get_categories;
 use std::sync::Arc;
@@ -5,6 +6,12 @@ use std::sync::Arc;
 pub enum AppEvent {
     Tick,
     Input(crossterm::event::KeyEvent),
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum ViewMode {
+    Main,
+    Reading,
 }
 
 pub struct App {
@@ -15,14 +22,16 @@ pub struct App {
     pub items: Vec<NewsItem>,
     pub stats: (usize, usize),
     pub should_quit: bool,
-    pub is_reading: bool,
+    pub view_mode: ViewMode,
     pub is_searching: bool,
+    pub is_showing_help: bool,
     pub search_query: String,
+    pub theme: Theme,
     last_db_change: u64,
 }
 
 impl App {
-    pub fn new(db: Arc<Db>) -> Self {
+    pub fn new(db: Arc<Db>, theme: Theme) -> Self {
         let categories = get_categories();
         App {
             db,
@@ -32,16 +41,17 @@ impl App {
             items: Vec::new(),
             stats: (0, 0),
             should_quit: false,
-            is_reading: false,
+            view_mode: ViewMode::Main,
             is_searching: false,
+            is_showing_help: false,
             search_query: String::new(),
+            theme,
             last_db_change: 0,
         }
     }
 
     pub fn on_tick(&mut self) {
         let current_change = self.db.get_change_count();
-        // Always refresh if searching, otherwise check for changes
         if self.is_searching || current_change > self.last_db_change {
             self.fetch_items_from_db();
             if let Ok(stats) = self.db.get_stats() {
@@ -78,6 +88,11 @@ impl App {
     pub fn on_key(&mut self, key: crossterm::event::KeyEvent) {
         use crossterm::event::KeyCode;
 
+        if self.is_showing_help {
+            self.is_showing_help = false;
+            return;
+        }
+
         if self.is_searching {
             match key.code {
                 KeyCode::Enter | KeyCode::Esc => {
@@ -99,31 +114,44 @@ impl App {
 
         match key.code {
             KeyCode::Char('q') => {
-                if self.is_reading {
-                    self.is_reading = false;
+                if self.view_mode == ViewMode::Reading {
+                    self.view_mode = ViewMode::Main;
                 } else {
                     self.should_quit = true;
                 }
             }
             KeyCode::Char('/') => {
-                self.is_searching = true;
-                self.selected_item = 0;
+                if self.view_mode == ViewMode::Main {
+                    self.is_searching = true;
+                    self.selected_item = 0;
+                }
+            }
+            KeyCode::Char('?') | KeyCode::F(1) => {
+                self.is_showing_help = true;
+            }
+            KeyCode::Char('t') => {
+                self.theme = match self.theme {
+                    Theme::Black => Theme::White,
+                    Theme::White => Theme::DeepBlue,
+                    Theme::DeepBlue => Theme::Matrix,
+                    Theme::Matrix => Theme::Black,
+                };
             }
             KeyCode::Esc => {
-                if self.is_reading {
-                    self.is_reading = false;
+                if self.view_mode == ViewMode::Reading {
+                    self.view_mode = ViewMode::Main;
                 } else if !self.search_query.is_empty() {
                     self.search_query.clear();
                     self.fetch_items_from_db();
                 }
             }
             KeyCode::Enter => {
-                if !self.items.is_empty() {
-                    self.is_reading = true;
+                if !self.items.is_empty() && self.view_mode == ViewMode::Main {
+                    self.view_mode = ViewMode::Reading;
                 }
             }
             KeyCode::Down | KeyCode::Char('j') => {
-                if !self.is_reading
+                if self.view_mode == ViewMode::Main
                     && !self.items.is_empty()
                     && self.selected_item < self.items.len() - 1
                 {
@@ -131,19 +159,21 @@ impl App {
                 }
             }
             KeyCode::Up | KeyCode::Char('k') => {
-                if !self.is_reading && self.selected_item > 0 {
+                if self.view_mode == ViewMode::Main && self.selected_item > 0 {
                     self.selected_item -= 1;
                 }
             }
             KeyCode::Right | KeyCode::Char('l') => {
-                if !self.is_reading && self.selected_category < self.categories.len() - 1 {
+                if self.view_mode == ViewMode::Main
+                    && self.selected_category < self.categories.len() - 1
+                {
                     self.selected_category += 1;
                     self.selected_item = 0;
                     self.fetch_items_from_db();
                 }
             }
             KeyCode::Left | KeyCode::Char('h') => {
-                if !self.is_reading && self.selected_category > 0 {
+                if self.view_mode == ViewMode::Main && self.selected_category > 0 {
                     self.selected_category -= 1;
                     self.selected_item = 0;
                     self.fetch_items_from_db();
