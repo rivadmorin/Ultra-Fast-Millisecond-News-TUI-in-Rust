@@ -1,8 +1,8 @@
+use anyhow::{Result, anyhow};
+use chrono::Utc;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 use serde::{Deserialize, Serialize};
-use anyhow::{Result, anyhow};
-use chrono::Utc;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NewsArticle {
@@ -87,12 +87,14 @@ impl Scraper {
 
             let page = session.call_method1("get", (url,))?;
 
-            let title: String = page.call_method1("css", ("h1::text, title::text",))?
+            let title: String = page
+                .call_method1("css", ("h1::text, title::text",))?
                 .call_method0("get")?
                 .extract()
                 .unwrap_or_else(|_| "Unknown Title".to_string());
 
-            let content: String = page.call_method1("css", ("article p::text, .content p::text, main p::text",))?
+            let content: String = page
+                .call_method1("css", ("article p::text, .content p::text, main p::text",))?
                 .call_method0("get_all")?
                 .extract::<Vec<String>>()?
                 .join("\n");
