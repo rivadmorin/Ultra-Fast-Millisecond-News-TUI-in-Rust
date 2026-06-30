@@ -68,7 +68,7 @@ impl Db {
         self.change_counter.load(Ordering::Relaxed)
     }
 
-    fn increment_change_counter(&self) {
+    pub fn increment_change_counter(&self) {
         self.change_counter.fetch_add(1, Ordering::SeqCst);
     }
 

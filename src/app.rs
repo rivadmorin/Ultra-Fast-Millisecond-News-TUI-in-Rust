@@ -32,6 +32,8 @@ pub struct App {
     pub theme: Theme,
     pub refresh_countdown: i64,
     last_db_change: u64,
+    last_fetched_search_query: String,
+    last_fetched_category: usize,
 }
 
 impl App {
@@ -52,6 +54,8 @@ impl App {
             theme,
             refresh_countdown: 0,
             last_db_change: 0,
+            last_fetched_search_query: String::new(),
+            last_fetched_category: 0,
         }
     }
 
@@ -62,14 +66,22 @@ impl App {
         let next = self.db.next_fetch_timestamp.load(Ordering::Relaxed);
         self.refresh_countdown = (next - now).max(0);
 
-        if self.view_mode != ViewMode::GlobalSearch
-            && (self.is_searching || current_change > self.last_db_change)
-        {
-            self.fetch_items_from_db();
-            if let Ok(stats) = self.db.get_stats() {
+        if self.view_mode != ViewMode::GlobalSearch {
+            let db_changed = current_change > self.last_db_change;
+            let search_changed = self.search_query != self.last_fetched_search_query;
+            let category_changed = self.selected_category != self.last_fetched_category;
+
+            if db_changed || search_changed || category_changed {
+                self.fetch_items_from_db();
+                self.last_db_change = current_change;
+            }
+
+            if let Some(stats) = (db_changed || self.stats.0 == 0)
+                .then(|| self.db.get_stats().ok())
+                .flatten()
+            {
                 self.stats = stats;
             }
-            self.last_db_change = current_change;
         }
     }
 
@@ -88,6 +100,8 @@ impl App {
 
         if let Ok(new_items) = self.db.get_latest_items(200, cat, search) {
             self.items = new_items;
+            self.last_fetched_search_query = self.search_query.clone();
+            self.last_fetched_category = self.selected_category;
 
             if self.items.is_empty() {
                 self.selected_item = 0;
@@ -167,7 +181,7 @@ impl App {
                 if self.view_mode == ViewMode::Reading {
                     self.view_mode = if self
                         .items
-                        .get(0)
+                        .first()
                         .map(|i| i.source.as_str() == "DuckDuckGo")
                         .unwrap_or(false)
                     {
@@ -213,7 +227,7 @@ impl App {
                 if self.view_mode == ViewMode::Reading {
                     self.view_mode = if self
                         .items
-                        .get(0)
+                        .first()
                         .map(|i| i.source.as_str() == "DuckDuckGo")
                         .unwrap_or(false)
                     {
@@ -271,5 +285,39 @@ impl App {
             }
             _ => {}
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Theme;
+    use crate::db::Db;
+    use std::sync::Arc;
+
+    #[test]
+    fn test_tick_performance_optimized() {
+        let db = Arc::new(Db::new(":memory:").unwrap());
+        let mut app = App::new(db, Theme::Black);
+
+        // Initial fetch
+        app.on_tick();
+        let _initial_items = app.items.len();
+
+        // Change category
+        app.selected_category = 1;
+        app.on_tick();
+        assert_eq!(app.last_fetched_category, 1);
+
+        // Change search query
+        app.search_query = "test".to_string();
+        app.on_tick();
+        assert_eq!(app.last_fetched_search_query, "test");
+
+        // Simulate DB change
+        app.db.increment_change_counter();
+        let old_change = app.last_db_change;
+        app.on_tick();
+        assert!(app.last_db_change > old_change);
     }
 }
