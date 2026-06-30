@@ -1,0 +1,894 @@
+[[sources]]
+url = "https://rss.detik.com/index.php/detikcom"
+category = "Indonesia"
+source_name = "Detikcom"
+
+[[sources]]
+url = "https://www.kompas.com/tag/berita-terbaru/rss"
+category = "Indonesia"
+source_name = "Kompas"
+
+[[sources]]
+url = "https://www.antaranews.com/rss/terpopuler.xml"
+category = "Indonesia"
+source_name = "Antara News"
+
+[[sources]]
+url = "https://www.cnnindonesia.com/ekonomi/rss"
+category = "Indonesia"
+source_name = "CNN Ekonomi"
+
+[[sources]]
+url = "https://www.liputan6.com/rss"
+category = "Indonesia"
+source_name = "Liputan6"
+
+[[sources]]
+url = "https://www.merdeka.com/rss"
+category = "Indonesia"
+source_name = "Merdeka"
+
+[[sources]]
+url = "https://www.tempo.co/rss/nasional"
+category = "Indonesia"
+source_name = "Tempo Nasional"
+
+[[sources]]
+url = "https://www.viva.co.id/rss/all"
+category = "Indonesia"
+source_name = "Viva News"
+
+[[sources]]
+url = "https://www.republika.co.id/rss"
+category = "Indonesia"
+source_name = "Republika"
+
+[[sources]]
+url = "https://www.suara.com/rss/news"
+category = "Indonesia"
+source_name = "Suara.com"
+
+[[sources]]
+url = "https://www.tribunnews.com/rss"
+category = "Indonesia"
+source_name = "Tribunnews"
+
+[[sources]]
+url = "https://www.okezone.com/rss/news.xml"
+category = "Indonesia"
+source_name = "Okezone"
+
+[[sources]]
+url = "https://www.jawapos.com/rss"
+category = "Indonesia"
+source_name = "Jawa Pos"
+
+[[sources]]
+url = "https://www.idntimes.com/feed"
+category = "Indonesia"
+source_name = "IDN Times"
+
+[[sources]]
+url = "https://www.beritasatu.com/rss"
+category = "Indonesia"
+source_name = "BeritaSatu"
+
+[[sources]]
+url = "https://www.inews.id/rss"
+category = "Indonesia"
+source_name = "iNews"
+
+[[sources]]
+url = "https://www.kumparan.com/rss"
+category = "Indonesia"
+source_name = "Kumparan"
+
+[[sources]]
+url = "https://www.bisnis.com/rss"
+category = "Indonesia"
+source_name = "Bisnis.com"
+
+[[sources]]
+url = "https://www.cnbcindonesia.com/news/rss"
+category = "Indonesia"
+source_name = "CNBC ID"
+
+[[sources]]
+url = "https://www.kontan.co.id/rss"
+category = "Indonesia"
+source_name = "Kontan"
+
+[[sources]]
+url = "https://www.inilah.com/feed"
+category = "Indonesia"
+source_name = "Inilah"
+
+[[sources]]
+url = "https://www.poskota.co.id/rss"
+category = "Indonesia"
+source_name = "Poskota"
+
+[[sources]]
+url = "https://www.solopos.com/feed"
+category = "Indonesia"
+source_name = "Solopos"
+
+[[sources]]
+url = "https://www.hallo.id/rss"
+category = "Indonesia"
+source_name = "Hallo.id"
+
+[[sources]]
+url = "https://www.kapanlagi.com/feed/"
+category = "Indonesia"
+source_name = "KapanLagi"
+
+[[sources]]
+url = "https://www.pikiran-rakyat.com/rss"
+category = "Indonesia"
+source_name = "Pikiran Rakyat"
+
+[[sources]]
+url = "https://www.grid.id/rss"
+category = "Indonesia"
+source_name = "Grid"
+
+[[sources]]
+url = "https://www.suaramerdeka.com/rss"
+category = "Indonesia"
+source_name = "Suara Merdeka"
+
+[[sources]]
+url = "https://www.merdeka.com/peristiwa/rss"
+category = "Indonesia"
+source_name = "Merdeka Peristiwa"
+
+[[sources]]
+url = "http://feeds.bbci.co.uk/news/rss.xml"
+category = "World"
+source_name = "BBC News"
+
+[[sources]]
+url = "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
+category = "World"
+source_name = "NYT World"
+
+[[sources]]
+url = "https://www.aljazeera.com/xml/rss/all.xml"
+category = "World"
+source_name = "Al Jazeera"
+
+[[sources]]
+url = "https://www.theguardian.com/world/rss"
+category = "World"
+source_name = "The Guardian"
+
+[[sources]]
+url = "https://www.reutersagency.com/feed/?best-types=political-news&post_type=best"
+category = "World"
+source_name = "Reuters"
+
+[[sources]]
+url = "https://www.scmp.com/rss/91/feed"
+category = "World"
+source_name = "SCMP"
+
+[[sources]]
+url = "https://www.france24.com/en/rss"
+category = "World"
+source_name = "France 24"
+
+[[sources]]
+url = "https://www.dw.com/en/top-stories/s-9097/rss"
+category = "World"
+source_name = "DW"
+
+[[sources]]
+url = "https://www.washingtonpost.com/arc/outboundfeeds/rss/world/"
+category = "World"
+source_name = "Washington Post"
+
+[[sources]]
+url = "https://www.asahi.com/english/rss/"
+category = "World"
+source_name = "Asahi Shimbun"
+
+[[sources]]
+url = "https://www.japantimes.co.jp/feed/"
+category = "World"
+source_name = "Japan Times"
+
+[[sources]]
+url = "https://www.rt.com/rss/news/"
+category = "World"
+source_name = "RT News"
+
+[[sources]]
+url = "https://www.euronews.com/rss?format=mrss&level=vertical&name=news"
+category = "World"
+source_name = "EuroNews"
+
+[[sources]]
+url = "https://www.foreignaffairs.com/rss.xml"
+category = "World"
+source_name = "Foreign Affairs"
+
+[[sources]]
+url = "https://www.cfr.org/rss/news-releases.xml"
+category = "World"
+source_name = "CFR"
+
+[[sources]]
+url = "https://www.un.org/press/en/feed"
+category = "World"
+source_name = "UN News"
+
+[[sources]]
+url = "https://www.voanews.com/api/z-"
+category = "World"
+source_name = "VOA News"
+
+[[sources]]
+url = "https://www.thestar.com.my/rss/news/world/"
+category = "World"
+source_name = "The Star"
+
+[[sources]]
+url = "https://www.taipeitimes.com/rss/news"
+category = "World"
+source_name = "Taipei Times"
+
+[[sources]]
+url = "https://www.moscowtimes.ru/rss/news"
+category = "World"
+source_name = "Moscow Times"
+
+[[sources]]
+url = "https://www.timesofisrael.com/feed/"
+category = "World"
+source_name = "Times of Israel"
+
+[[sources]]
+url = "https://www.independent.co.uk/news/world/rss"
+category = "World"
+source_name = "Independent"
+
+[[sources]]
+url = "https://www.politico.com/rss/politicopicks.xml"
+category = "World"
+source_name = "Politico"
+
+[[sources]]
+url = "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=10"
+category = "World"
+source_name = "US Defense"
+
+[[sources]]
+url = "https://www.thejournal.ie/feed/"
+category = "World"
+source_name = "The Journal"
+
+[[sources]]
+url = "https://english.kyodonews.net/rss/news.xml"
+category = "World"
+source_name = "Kyodo News"
+
+[[sources]]
+url = "https://www.theonion.com/rss"
+category = "World"
+source_name = "The Onion"
+
+[[sources]]
+url = "http://feeds.bloomberg.com/markets/news.rss"
+category = "Finance"
+source_name = "Bloomberg"
+
+[[sources]]
+url = "https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml"
+category = "Finance"
+source_name = "WSJ Business"
+
+[[sources]]
+url = "https://www.ft.com/?format=rss"
+category = "Finance"
+source_name = "Financial Times"
+
+[[sources]]
+url = "https://www.cnbc.com/id/10000664/device/rss/rss.html"
+category = "Finance"
+source_name = "CNBC"
+
+[[sources]]
+url = "https://www.economist.com/finance-and-economics/rss.xml"
+category = "Finance"
+source_name = "The Economist"
+
+[[sources]]
+url = "https://www.investing.com/rss/news.rss"
+category = "Finance"
+source_name = "Investing.com"
+
+[[sources]]
+url = "https://www.forbes.com/business/feed/"
+category = "Finance"
+source_name = "Forbes"
+
+[[sources]]
+url = "https://www.businessinsider.com/rss"
+category = "Finance"
+source_name = "Business Insider"
+
+[[sources]]
+url = "https://feeds.feedburner.com/zerohedge/feed"
+category = "Finance"
+source_name = "ZeroHedge"
+
+[[sources]]
+url = "https://www.marketwatch.com/rss/topstories"
+category = "Finance"
+source_name = "MarketWatch"
+
+[[sources]]
+url = "https://finance.yahoo.com/news/rssindex"
+category = "Finance"
+source_name = "Yahoo Finance"
+
+[[sources]]
+url = "https://www.kiplinger.com/index.xml"
+category = "Finance"
+source_name = "Kiplinger"
+
+[[sources]]
+url = "https://www.worldbank.org/en/news/rss.xml"
+category = "Finance"
+source_name = "World Bank"
+
+[[sources]]
+url = "https://www.imf.org/en/news/rss"
+category = "Finance"
+source_name = "IMF News"
+
+[[sources]]
+url = "https://www.ibtimes.com/rss"
+category = "Finance"
+source_name = "IB Times"
+
+[[sources]]
+url = "https://www.benzinga.com/feed"
+category = "Finance"
+source_name = "Benzinga"
+
+[[sources]]
+url = "https://www.moneycontrol.com/rss/latestnews.xml"
+category = "Finance"
+source_name = "MoneyControl"
+
+[[sources]]
+url = "https://www.fxstreet.com/rss/news"
+category = "Finance"
+source_name = "FXStreet"
+
+[[sources]]
+url = "https://www.wallstreetmojo.com/feed/"
+category = "Finance"
+source_name = "WallStreetMojo"
+
+[[sources]]
+url = "https://news.ycombinator.com/rss"
+category = "Tech"
+source_name = "Hacker News"
+
+[[sources]]
+url = "https://techcrunch.com/feed/"
+category = "Tech"
+source_name = "TechCrunch"
+
+[[sources]]
+url = "https://www.theverge.com/rss/index.xml"
+category = "Tech"
+source_name = "The Verge"
+
+[[sources]]
+url = "https://wired.com/feed/rss"
+category = "Tech"
+source_name = "Wired"
+
+[[sources]]
+url = "https://openai.com/blog/rss.xml"
+category = "AI"
+source_name = "OpenAI"
+
+[[sources]]
+url = "https://deepmind.google/blog/rss.xml"
+category = "AI"
+source_name = "DeepMind"
+
+[[sources]]
+url = "https://arstechnica.com/feed/"
+category = "Tech"
+source_name = "Ars Technica"
+
+[[sources]]
+url = "https://www.zdnet.com/news/rss.xml"
+category = "Tech"
+source_name = "ZDNet"
+
+[[sources]]
+url = "https://www.engadget.com/rss.xml"
+category = "Tech"
+source_name = "Engadget"
+
+[[sources]]
+url = "https://towardsdatascience.com/feed"
+category = "AI"
+source_name = "Towards Data Science"
+
+[[sources]]
+url = "https://www.technologyreview.com/feed/"
+category = "Tech"
+source_name = "MIT Tech Review"
+
+[[sources]]
+url = "https://www.nextbigfuture.com/feed"
+category = "Tech"
+source_name = "Next Big Future"
+
+[[sources]]
+url = "https://www.techradar.com/rss"
+category = "Tech"
+source_name = "TechRadar"
+
+[[sources]]
+url = "https://www.slashgear.com/feed/"
+category = "Tech"
+source_name = "SlashGear"
+
+[[sources]]
+url = "https://www.digitaltrends.com/feed/"
+category = "Tech"
+source_name = "Digital Trends"
+
+[[sources]]
+url = "https://9to5mac.com/feed/"
+category = "Tech"
+source_name = "9to5Mac"
+
+[[sources]]
+url = "https://www.androidcentral.com/feed"
+category = "Tech"
+source_name = "Android Central"
+
+[[sources]]
+url = "https://www.venturebeat.com/feed/"
+category = "Tech"
+source_name = "VentureBeat"
+
+[[sources]]
+url = "https://www.theblock.co/rss"
+category = "Tech"
+source_name = "The Block"
+
+[[sources]]
+url = "https://www.artificialintelligence-news.com/feed/"
+category = "AI"
+source_name = "AI News"
+
+[[sources]]
+url = "https://www.ubergizmo.com/feed/"
+category = "Tech"
+source_name = "Ubergizmo"
+
+[[sources]]
+url = "https://www.tomsguide.com/rss"
+category = "Tech"
+source_name = "Toms Guide"
+
+[[sources]]
+url = "https://www.howtogeek.com/feed/"
+category = "Tech"
+source_name = "HowToGeek"
+
+[[sources]]
+url = "https://www.coindesk.com/arc/outboundfeeds/rss/"
+category = "Crypto"
+source_name = "CoinDesk"
+
+[[sources]]
+url = "https://cointelegraph.com/rss"
+category = "Crypto"
+source_name = "CoinTelegraph"
+
+[[sources]]
+url = "https://bitcoinmagazine.com/.rss/full/"
+category = "Crypto"
+source_name = "Bitcoin Magazine"
+
+[[sources]]
+url = "https://cryptoslate.com/feed/"
+category = "Crypto"
+source_name = "CryptoSlate"
+
+[[sources]]
+url = "https://decrypt.co/feed"
+category = "Crypto"
+source_name = "Decrypt"
+
+[[sources]]
+url = "https://news.bitcoin.com/feed/"
+category = "Crypto"
+source_name = "Bitcoin.com"
+
+[[sources]]
+url = "https://blockworks.co/feed"
+category = "Crypto"
+source_name = "Blockworks"
+
+[[sources]]
+url = "https://ambcrypto.com/feed/"
+category = "Crypto"
+source_name = "AMBCrypto"
+
+[[sources]]
+url = "https://beincrypto.com/feed/"
+category = "Crypto"
+source_name = "BeInCrypto"
+
+[[sources]]
+url = "https://www.newsbtc.com/feed/"
+category = "Crypto"
+source_name = "NewsBTC"
+
+[[sources]]
+url = "https://www.trustnodes.com/feed"
+category = "Crypto"
+source_name = "TrustNodes"
+
+[[sources]]
+url = "https://dailyhodl.com/feed/"
+category = "Crypto"
+source_name = "DailyHodl"
+
+[[sources]]
+url = "https://www.nasa.gov/feed/"
+category = "Science"
+source_name = "NASA"
+
+[[sources]]
+url = "https://www.sciencedaily.com/rss/all.xml"
+category = "Science"
+source_name = "Science Daily"
+
+[[sources]]
+url = "https://www.nature.com/nature.rss"
+category = "Science"
+source_name = "Nature"
+
+[[sources]]
+url = "https://www.scientificamerican.com/rss/all"
+category = "Science"
+source_name = "Scientific American"
+
+[[sources]]
+url = "https://www.healthline.com/feed"
+category = "Health"
+source_name = "Healthline"
+
+[[sources]]
+url = "https://www.medicalnewstoday.com/feed"
+category = "Health"
+source_name = "Medical News Today"
+
+[[sources]]
+url = "https://www.webmd.com/rss/public/news.xml"
+category = "Health"
+source_name = "WebMD"
+
+[[sources]]
+url = "https://www.nih.gov/news-events/news-releases?format=rss"
+category = "Health"
+source_name = "NIH"
+
+[[sources]]
+url = "https://www.who.int/rss-feeds/news-english.xml"
+category = "Health"
+source_name = "WHO"
+
+[[sources]]
+url = "https://www.livescience.com/feed"
+category = "Science"
+source_name = "LiveScience"
+
+[[sources]]
+url = "https://www.smithsonianmag.com/rss/all/"
+category = "Science"
+source_name = "Smithsonian"
+
+[[sources]]
+url = "https://feeds.feedburner.com/EnvironmentalNewsNetwork"
+category = "Science"
+source_name = "ENN"
+
+[[sources]]
+url = "https://www.popsci.com/feed/"
+category = "Science"
+source_name = "PopSci"
+
+[[sources]]
+url = "https://www.quantamagazine.org/feed/"
+category = "Science"
+source_name = "Quanta"
+
+[[sources]]
+url = "https://www.phys.org/rss-feed/"
+category = "Science"
+source_name = "Phys.org"
+
+[[sources]]
+url = "https://www.psychologytoday.com/us/front/feed"
+category = "Health"
+source_name = "Psychology Today"
+
+[[sources]]
+url = "https://www.vogue.com/feed/rss"
+category = "Lifestyle"
+source_name = "Vogue"
+
+[[sources]]
+url = "https://www.gq.com/feed/rss"
+category = "Lifestyle"
+source_name = "GQ"
+
+[[sources]]
+url = "https://www.nationalgeographic.com/rss/index.xml"
+category = "Lifestyle"
+source_name = "NatGeo"
+
+[[sources]]
+url = "https://www.rollingstone.com/feed/"
+category = "Lifestyle"
+source_name = "Rolling Stone"
+
+[[sources]]
+url = "https://www.vanityfair.com/feed/rss"
+category = "Lifestyle"
+source_name = "Vanity Fair"
+
+[[sources]]
+url = "https://www.newyorker.com/feed/everything"
+category = "Lifestyle"
+source_name = "The New Yorker"
+
+[[sources]]
+url = "https://www.travelandleisure.com/rss"
+category = "Lifestyle"
+source_name = "Travel + Leisure"
+
+[[sources]]
+url = "https://www.foodandwine.com/rss"
+category = "Lifestyle"
+source_name = "Food & Wine"
+
+[[sources]]
+url = "https://www.architecturaldigest.com/feed/rss"
+category = "Lifestyle"
+source_name = "Arch Digest"
+
+[[sources]]
+url = "https://www.cntraveller.com/rss/all"
+category = "Lifestyle"
+source_name = "CN Traveller"
+
+[[sources]]
+url = "https://www.harpersbazaar.com/rss/all.xml"
+category = "Lifestyle"
+source_name = "Harpers Bazaar"
+
+[[sources]]
+url = "https://www.bonappetit.com/feed/rss"
+category = "Lifestyle"
+source_name = "Bon Appetit"
+
+[[sources]]
+url = "https://www.elle.com/rss/all.xml"
+category = "Lifestyle"
+source_name = "Elle"
+
+[[sources]]
+url = "https://www.esquire.com/rss/all.xml"
+category = "Lifestyle"
+source_name = "Esquire"
+
+[[sources]]
+url = "https://www.highsnobiety.com/feed/"
+category = "Lifestyle"
+source_name = "Highsnobiety"
+
+[[sources]]
+url = "https://www.espn.com/espn/rss/news"
+category = "Sports"
+source_name = "ESPN"
+
+[[sources]]
+url = "https://feeds.bbci.co.uk/sport/rss.xml"
+category = "Sports"
+source_name = "BBC Sport"
+
+[[sources]]
+url = "https://www.skysports.com/rss/12040"
+category = "Sports"
+source_name = "Sky Sports"
+
+[[sources]]
+url = "https://www.theathletic.com/rss"
+category = "Sports"
+source_name = "The Athletic"
+
+[[sources]]
+url = "https://www.cbssports.com/rss/headlines/"
+category = "Sports"
+source_name = "CBS Sports"
+
+[[sources]]
+url = "https://www.nbcsports.com/feed"
+category = "Sports"
+source_name = "NBC Sports"
+
+[[sources]]
+url = "https://www.fifa.com/rss/news.xml"
+category = "Sports"
+source_name = "FIFA"
+
+[[sources]]
+url = "https://www.nba.com/rss/nba_rss.xml"
+category = "Sports"
+source_name = "NBA"
+
+[[sources]]
+url = "https://www.motorsport.com/rss/all/news/"
+category = "Sports"
+source_name = "Motorsport"
+
+[[sources]]
+url = "https://www.nfl.com/rss/rsslanding?searchString=home"
+category = "Sports"
+source_name = "NFL"
+
+[[sources]]
+url = "https://www.mlb.com/feeds/news/all.xml"
+category = "Sports"
+source_name = "MLB"
+
+[[sources]]
+url = "https://www.tennis.com/rss/news/"
+category = "Sports"
+source_name = "Tennis.com"
+
+[[sources]]
+url = "https://www.golfchannel.com/rss/news"
+category = "Sports"
+source_name = "Golf Channel"
+
+[[sources]]
+url = "https://www.cyclingnews.com/rss/all/"
+category = "Sports"
+source_name = "CyclingNews"
+
+[[sources]]
+url = "https://www.ign.com/rss/articles/feed"
+category = "Entertainment"
+source_name = "IGN"
+
+[[sources]]
+url = "https://www.gamespot.com/feeds/news/"
+category = "Entertainment"
+source_name = "GameSpot"
+
+[[sources]]
+url = "https://variety.com/feed/"
+category = "Entertainment"
+source_name = "Variety"
+
+[[sources]]
+url = "https://www.hollywoodreporter.com/feed/"
+category = "Entertainment"
+source_name = "Hollywood Reporter"
+
+[[sources]]
+url = "https://www.tmz.com/rss.xml"
+category = "Entertainment"
+source_name = "TMZ"
+
+[[sources]]
+url = "https://www.rollingstone.com/music/feed/"
+category = "Entertainment"
+source_name = "RS Music"
+
+[[sources]]
+url = "https://www.kotaku.com/rss"
+category = "Gaming"
+source_name = "Kotaku"
+
+[[sources]]
+url = "https://www.polygon.com/rss/index.xml"
+category = "Gaming"
+source_name = "Polygon"
+
+[[sources]]
+url = "https://www.pcgamer.com/rss"
+category = "Gaming"
+source_name = "PC Gamer"
+
+[[sources]]
+url = "https://www.destructoid.com/feed/"
+category = "Gaming"
+source_name = "Destructoid"
+
+[[sources]]
+url = "https://www.nintendolife.com/feeds/latest"
+category = "Gaming"
+source_name = "Nintendo Life"
+
+[[sources]]
+url = "https://www.rockpapershotgun.com/feed"
+category = "Gaming"
+source_name = "RPS"
+
+[[sources]]
+url = "https://www.gematsu.com/feed"
+category = "Gaming"
+source_name = "Gematsu"
+
+[[sources]]
+url = "https://www.eurogamer.net/feed"
+category = "Gaming"
+source_name = "Eurogamer"
+
+[[sources]]
+url = "https://www.engadget.com/gaming/rss.xml"
+category = "Gaming"
+source_name = "Engadget Gaming"
+
+[[sources]]
+url = "https://www.autoblog.com/rss.xml"
+category = "Auto"
+source_name = "Autoblog"
+
+[[sources]]
+url = "https://www.caranddriver.com/rss/all.xml"
+category = "Auto"
+source_name = "Car and Driver"
+
+[[sources]]
+url = "https://www.motortrend.com/rss/"
+category = "Auto"
+source_name = "MotorTrend"
+
+[[sources]]
+url = "https://www.autocar.co.uk/rss/news"
+category = "Auto"
+source_name = "AutoCar"
+
+[[sources]]
+url = "https://www.jalopnik.com/rss"
+category = "Auto"
+source_name = "Jalopnik"
+
+[[sources]]
+url = "https://www.scotusblog.com/feed/"
+category = "Legal"
+source_name = "SCOTUSblog"
+
+[[sources]]
+url = "https://www.law.com/rss/news/"
+category = "Legal"
+source_name = "Law.com"
+
+[[sources]]
+url = "https://www.abajournal.com/magazine/rss/"
+category = "Legal"
+source_name = "ABA Journal"
+
+[[sources]]
+url = "https://www.justice.gov/news-releases.xml"
+category = "Legal"
+source_name = "DOJ News"

@@ -3,7 +3,7 @@ use chrono::{TimeZone, Utc};
 use log::info;
 use rusqlite::{Connection, Result, params};
 use std::path::Path;
-use std::sync::atomic::{AtomicU64, AtomicI64, Ordering};
+use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 pub struct Db {
@@ -73,7 +73,7 @@ impl Db {
     }
 
     pub fn insert_items(&self, items: &[NewsItem]) -> Result<usize> {
-        let mut conn = self.conn.lock().unwrap();
+        let mut conn = self.conn.lock().expect("Database lock poisoned");
         let tx = conn.transaction()?;
         let mut count = 0;
 
@@ -109,7 +109,7 @@ impl Db {
         category: Option<&str>,
         search: Option<&str>,
     ) -> Result<Vec<NewsItem>> {
-        let conn = self.conn.lock().unwrap();
+        let conn = self.conn.lock().expect("Database lock poisoned");
 
         let mut query = String::from(
             "SELECT title, source, category, url, description, timestamp FROM news WHERE 1=1",
@@ -136,7 +136,7 @@ impl Db {
 
         let mut items = Vec::new();
         while let Some(row) = rows.next()? {
-            let timestamp: i64 = row.get(5)?;
+            let timestamp: i64 = row.get::<_, i64>(5)?;
             let source: String = row.get(1)?;
 
             let datetime = Utc
@@ -162,7 +162,7 @@ impl Db {
     }
 
     pub fn cleanup_old_data(&self, policy: &RetentionPolicy) -> Result<usize> {
-        let conn = self.conn.lock().unwrap();
+        let conn = self.conn.lock().expect("Database lock poisoned");
         let cutoff = Utc::now().timestamp() - (policy.as_seconds() as i64);
         let deleted = conn.execute("DELETE FROM news WHERE timestamp < ?1", params![cutoff])?;
         if deleted > 0 {
@@ -173,17 +173,20 @@ impl Db {
     }
 
     pub fn vacuum(&self) -> Result<()> {
-        let conn = self.conn.lock().unwrap();
+        let conn = self.conn.lock().expect("Database lock poisoned");
         conn.execute("VACUUM", [])?;
         info!("Database vacuumed");
         Ok(())
     }
 
     pub fn get_stats(&self) -> Result<(usize, usize)> {
-        let conn = self.conn.lock().unwrap();
-        let count: usize = conn.query_row("SELECT COUNT(*) FROM news", [], |r| r.get(0))?;
+        let conn = self.conn.lock().expect("Database lock poisoned");
+        let count: usize =
+            conn.query_row("SELECT COUNT(*) FROM news", [], |r| r.get::<_, usize>(0))?;
         let sources: usize =
-            conn.query_row("SELECT COUNT(DISTINCT source) FROM news", [], |r| r.get(0))?;
+            conn.query_row("SELECT COUNT(DISTINCT source) FROM news", [], |r| {
+                r.get::<_, usize>(0)
+            })?;
         Ok((count, sources))
     }
 }

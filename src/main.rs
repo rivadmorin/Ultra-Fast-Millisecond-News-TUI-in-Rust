@@ -10,7 +10,8 @@ use app::{App, AppEvent};
 use config::Config;
 use db::Db;
 use directories::ProjectDirs;
-use std::{env, error::Error, io, sync::Arc};
+use simplelog::*;
+use std::{env, error::Error, fs::File, io, sync::Arc};
 
 use crossterm::{
     event::{self, Event as CEvent},
@@ -23,6 +24,18 @@ use tokio::time::Duration;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
+
+    if let Some(proj_dirs) = ProjectDirs::from("com", "LiveNewsTUI", "LiveNews") {
+        let log_dir = proj_dirs.data_local_dir();
+        let _ = std::fs::create_dir_all(log_dir);
+        let log_path = log_dir.join("live_news.log");
+
+        let _ = CombinedLogger::init(vec![WriteLogger::new(
+            LevelFilter::Info,
+            ConfigBuilder::new().set_time_format_rfc3339().build(),
+            File::create(log_path)?,
+        )]);
+    }
 
     if args.len() > 1 && args[1] == "--scrape" {
         let url = if args.len() > 2 {
@@ -78,12 +91,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     });
 
+    let input_tx = tx.clone();
     tokio::spawn(async move {
         loop {
             #[allow(clippy::collapsible_if)]
             if let Ok(true) = crossterm::event::poll(Duration::from_millis(100)) {
                 if let Ok(CEvent::Key(key)) = event::read() {
-                    if tx.send(AppEvent::Input(key)).is_ok() {
+                    if input_tx.send(AppEvent::Input(key)).is_ok() {
                         // Successfully sent
                     }
                 }
@@ -91,7 +105,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    let mut app = App::new(db, config.theme);
+    let mut app = App::new(db, config.theme, tx.clone());
     app.on_tick();
 
     loop {
@@ -101,6 +115,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
             match event {
                 AppEvent::Input(key) => app.on_key(key),
                 AppEvent::Tick => app.on_tick(),
+                AppEvent::GlobalSearchResults(items) => {
+                    app.items = items;
+                    app.selected_item = 0;
+                    app.view_mode = app::ViewMode::GlobalSearch;
+                    app.is_loading = false;
+                }
+                AppEvent::Error(err) => {
+                    app.is_loading = false;
+                    // In a production app, we might show a popup for errors
+                    log::error!("App error: {}", err);
+                }
             }
         }
 
