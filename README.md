@@ -1,81 +1,59 @@
 # 🚀 Live News TUI: The Ultimate Terminal Intelligence Aggregator
 
-**Live News TUI** adalah platform agregator berita berbasis Terminal User Interface (TUI) tingkat elit. Dirancang untuk kecepatan milidetik, privasi mutlak, dan estetika profesional kelas workstation. Aplikasi ini menggabungkan ketangguhan sistem **Rust** dengan fleksibilitas mesin scraping **Python (Scrapling)** dan kemampuan pencarian global **DuckDuckGo** untuk menghadirkan berita global secara stealth.
+**Live News TUI** adalah platform agregator berita berbasis Terminal User Interface (TUI) tingkat elit yang dirancang untuk kecepatan, privasi, dan efisiensi maksimal.
 
 ---
 
-## ✨ Fitur Unggulan (Elite Features)
+## ✨ Fitur Unggulan
 
 ### 🕵️ Stealth Scraping Engine (Hybrid Architecture)
 Ditenagai oleh library `Scrapling` di sisi Python yang diintegrasikan secara native melalui `PyO3`.
 - **Anti-Bot Bypass**: Menembus proteksi Cloudflare (403/429) secara otomatis.
 - **Stealthy Sessions**: Mensimulasikan sidik jari browser manusia asli.
+- **Non-blocking UI**: Operasi scraping dan pencarian berjalan di background tanpa membekukan antarmuka.
 
 ### 🔍 Custom Global Search (DuckDuckGo Integration)
-Bosan dengan sumber yang ada? Cari berita apapun di seluruh dunia secara real-time:
-- **Global Search (`s`)**: Tekan `s` untuk melakukan pencarian kata kunci global menggunakan engine DuckDuckGo.
-- **Instant Filtering**: Filter hasil pencarian secara instan langsung di terminal.
+Cari berita apapun di seluruh dunia secara real-time:
+- **Global Search (`s`)**: Pencarian global menggunakan engine DuckDuckGo.
+- **Instant Filtering**: Filter hasil secara instan langsung di terminal.
 
-### 🌐 Cakupan Berita Masif (100+ Premium Sources)
-- **🇮🇩 Indonesia Premium**: Detikcom, Kompas, Antara, CNN ID, CNBC ID, Tempo, Bisnis.com, Republika, Kumparan.
-- **🌍 Geopolitik & World**: Reuters, BBC, NYT World, Al Jazeera, SCMP, The Guardian, DW, France 24.
-- **💰 Finance & Global Economy**: Bloomberg, WSJ, Financial Times, The Economist, Investing.com, Forbes.
-- **🔬 Tech, AI & Innovation**: Hacker News, TechCrunch, OpenAI, DeepMind, The Verge, Wired.
-- **₿ Crypto & Web3**: CoinDesk, CoinTelegraph, Bitcoin Magazine, Decrypt, The Block.
-- **🧪 Science & Health**: NASA, Nature, Science Daily, Healthline, WHO, LiveScience.
+### 🌐 Konfigurasi Sumber Fleksibel
+- **`sources.toml`**: Tambahkan atau hapus sumber berita dengan mudah melalui file konfigurasi eksternal.
+- **Cakupan Masif**: Mendukung ratusan sumber berita global mulai dari Geopolitik, Finance, Tech, hingga Crypto.
 
 ### ⚡ Performa Workstation Modern
-- **Rust/Tokio Core**: Arsitektur asinkron untuk performa tanpa hambatan.
+- **Rust/Tokio Core**: Arsitektur asinkron sepenuhnya.
 - **SQLite WAL Mode**: Database teroptimasi untuk manajemen ribuan artikel.
-- **Sync Countdown**: Indikator hitung mundur real-time untuk sinkronisasi berita.
+- **Production-Ready Logging**: Pencatatan aktivitas sistem yang mendalam untuk kemudahan pemantauan.
 
 ---
 
 ## 🏛️ Arsitektur Sistem
 
-### Visual Alur Data (Hybrid Rust-Python)
-
-```mermaid
-graph TD
-    subgraph UI_Layer [Terminal UI - Ratatui]
-        A[View Manager]
-        B[Theme Engine]
-        C[Input Event Handler]
-    end
-
-    subgraph Logic_Layer [Core Engine - Rust/Tokio]
-        D[App State Store]
-        E[Background Fetcher]
-        F[Async SQLite Manager]
-    end
-
-    subgraph Python_Bridge [Stealth Module - PyO3]
-        G[Scrapling Fetcher]
-        H[DuckDuckGo Search]
-    end
-
-    I[Global Sources] -->|Stealth Fetch| G
-    H -->|Search Results| D
-    G -->|Raw Bytes| E
-    E -->|Write Transaction| F
-    F -->|Indexed Query| D
-    D -->|State Subscription| A
-    B -->|Dynamic Styling| A
-    C -->|Events / Actions| D
-```
+Aplikasi ini menggunakan model hybrid yang menggabungkan kecepatan sistem **Rust** dengan fleksibilitas ekosistem scraping **Python**. Komunikasi antar bahasa dilakukan melalui `PyO3`, dan UI dibangun di atas `Ratatui` dengan model event asinkron.
 
 ---
 
-## 🛠️ Panduan Instalasi & DevOps
+## 🛠️ Panduan DevOps (One-Command)
 
-### 1. Prasyarat
-- **Rust Toolchain** (v1.75+)
-- **Python** (v3.10+)
-- **Dependencies**: `pip install scrapling duckduckgo-search`
+Aplikasi ini mendukung otomatisasi penuh untuk siklus hidup aplikasi:
 
-### 2. Instalasi Satu Perintah
+### 1. Instalasi Satu Perintah
+Mengunduh dependensi, mengatur environment Python (venv), mengompilasi kode Rust, dan memasang binary ke sistem.
 ```bash
 ./install.sh
+```
+
+### 2. Update Satu Perintah
+Menarik pembaruan terbaru dari repositori dan melakukan pembangunan ulang otomatis.
+```bash
+./update.sh
+```
+
+### 3. Uninstal Satu Perintah
+Menghapus binary dari sistem dengan opsi untuk membersihkan data dan konfigurasi.
+```bash
+./uninstall.sh
 ```
 
 ---

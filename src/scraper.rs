@@ -1,8 +1,8 @@
+use anyhow::{Result, anyhow};
+use chrono::Utc;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 use serde::{Deserialize, Serialize};
-use anyhow::{Result, anyhow};
-use chrono::Utc;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NewsArticle {
@@ -52,9 +52,18 @@ impl Scraper {
             let mut articles = Vec::new();
             for item in results_list.iter() {
                 let dict = item.downcast::<PyDict>()?;
-                let title: String = dict.get_item("title")?.unwrap().extract()?;
-                let href: String = dict.get_item("href")?.unwrap().extract()?;
-                let body: String = dict.get_item("body")?.unwrap().extract()?;
+                let title: String = dict
+                    .get_item("title")?
+                    .map(|i| i.extract())
+                    .unwrap_or(Ok("No Title".to_string()))?;
+                let href: String = dict
+                    .get_item("href")?
+                    .map(|i| i.extract())
+                    .unwrap_or(Ok("".to_string()))?;
+                let body: String = dict
+                    .get_item("body")?
+                    .map(|i| i.extract())
+                    .unwrap_or(Ok("".to_string()))?;
 
                 let id = format!("{:x}", md5::compute(&href));
 
@@ -87,12 +96,14 @@ impl Scraper {
 
             let page = session.call_method1("get", (url,))?;
 
-            let title: String = page.call_method1("css", ("h1::text, title::text",))?
+            let title: String = page
+                .call_method1("css", ("h1::text, title::text",))?
                 .call_method0("get")?
                 .extract()
                 .unwrap_or_else(|_| "Unknown Title".to_string());
 
-            let content: String = page.call_method1("css", ("article p::text, .content p::text, main p::text",))?
+            let content: String = page
+                .call_method1("css", ("article p::text, .content p::text, main p::text",))?
                 .call_method0("get_all")?
                 .extract::<Vec<String>>()?
                 .join("\n");
