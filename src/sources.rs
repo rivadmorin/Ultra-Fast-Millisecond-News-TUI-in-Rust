@@ -953,3 +953,50 @@ pub fn get_categories() -> Vec<&'static str> {
         "Legal",
     ]
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_sources_not_empty() {
+        let sources = get_sources();
+        assert!(!sources.is_empty(), "Sources list should not be empty");
+    }
+
+    #[test]
+    fn test_get_categories_not_empty() {
+        let categories = get_categories();
+        assert!(
+            !categories.is_empty(),
+            "Categories list should not be empty"
+        );
+    }
+
+    #[test]
+    fn test_sources_categories_consistency() {
+        let sources = get_sources();
+        let categories = get_categories();
+        for source in sources {
+            assert!(
+                categories.contains(&source.category),
+                "Category '{}' of source '{}' not found in categories list",
+                source.category,
+                source.source_name
+            );
+        }
+    }
+
+    #[test]
+    fn test_sources_url_validity() {
+        let sources = get_sources();
+        for source in sources {
+            assert!(
+                source.url.starts_with("http"),
+                "URL '{}' of source '{}' is invalid",
+                source.url,
+                source.source_name
+            );
+        }
+    }
+}

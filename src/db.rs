@@ -3,7 +3,7 @@ use chrono::{TimeZone, Utc};
 use log::info;
 use rusqlite::{Connection, Result, params};
 use std::path::Path;
-use std::sync::atomic::{AtomicU64, AtomicI64, Ordering};
+use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 pub struct Db {
